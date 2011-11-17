@@ -11,7 +11,7 @@
     <groupId>com.revolsys.open</groupId>
 
 
-    <version>TRUNK-SNAPSHOT
+    <version>2011.11.17.RELEASE
 </version>
   </parent>
   <groupId>com.revolsys.open</groupId>
@@ -19,7 +19,7 @@
 
   <artifactId>com.revolsys.open.gis.google.fusiontables</artifactId>
   <name>GIS Google Fusion Tables</name>
-  <version>TRUNK-SNAPSHOT
+  <version>2011.11.17.RELEASE
 </version>
   <dependencies>
     <dependency>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>com.revolsys.open</groupId>
       <artifactId>com.revolsys.open.core</artifactId>
-      <version>TRUNK-SNAPSHOT</version>
+      <version>2011.11.17.RELEASE</version>
     </dependency>
   </dependencies>
 </project>

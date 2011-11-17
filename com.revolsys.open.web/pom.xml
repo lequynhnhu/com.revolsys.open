@@ -5,7 +5,7 @@
 
 
   <artifactId>com.revolsys.open.web</artifactId>
-  <version>TRUNK-SNAPSHOT
+  <version>2011.11.17.RELEASE
 </version>
   <name>Revolution Systems Web</name>
   <packaging>jar</packaging>
@@ -14,7 +14,7 @@
 		<groupId>com.revolsys.open</groupId>
 
 
-		<version>TRUNK-SNAPSHOT
+		<version>2011.11.17.RELEASE
 </version>
 	</parent>
   <build>

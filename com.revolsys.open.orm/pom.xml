@@ -6,7 +6,7 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>2014.03.02-GBA-2</version>
+    <version>2014.03.02-GBA2</version>
   </parent>
 
   <dependencies>

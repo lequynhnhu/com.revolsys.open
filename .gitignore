@@ -2,4 +2,4 @@
 .settings
 .classpath
 *.log
-target
+target/com.revolsys.open.gdal

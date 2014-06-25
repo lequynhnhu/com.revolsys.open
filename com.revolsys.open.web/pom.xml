@@ -7,7 +7,7 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>2014.01.07-CPF.2</version>
+    <version>CPF-SNAPSHOT</version>
   </parent>
 
   <dependencies>

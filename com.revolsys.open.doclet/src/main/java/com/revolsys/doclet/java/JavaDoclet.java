@@ -182,7 +182,8 @@ public class JavaDoclet {
   public static int optionLength(String optionName) {
     optionName = optionName.toLowerCase();
     if (optionName.equals("-d") || optionName.equals("-doctitle")
-      || optionName.equals("-htmlfooter") || optionName.equals("-htmlheader")) {
+      || optionName.equals("-docid") || optionName.equals("-htmlfooter")
+      || optionName.equals("-htmlheader")) {
       return 2;
     }
     return -1;
@@ -279,6 +280,8 @@ public class JavaDoclet {
     return flag;
   }
 
+  private String docId;
+
   private String docTitle;
 
   private final RootDoc root;
@@ -315,18 +318,18 @@ public class JavaDoclet {
     writer.element(HtmlUtil.TITLE, docTitle);
     HtmlUtil.serializeCss(
       writer,
-      "http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
+      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
     HtmlUtil.serializeCss(
       writer,
-      "http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css");
+      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/cupertino/jquery-ui.css");
     HtmlUtil.serializeCss(writer, "javadoc.css");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js");
+      "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js");
+      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js");
     HtmlUtil.serializeScriptLink(
       writer,
-      "http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
+      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
     HtmlUtil.serializeScriptLink(writer, "javadoc.js");
     writer.endTagLn(HtmlUtil.HEAD);
   }
@@ -339,6 +342,8 @@ public class JavaDoclet {
 
       } else if (optionName.equals("-doctitle")) {
         docTitle = option[1];
+      } else if (optionName.equals("-docid")) {
+        docId = option[1];
       } else if (optionName.equals("-htmlheader")) {
         header = FileUtil.getFileAsString(option[1]);
       } else if (optionName.equals("-htmlfooter")) {
@@ -377,6 +382,7 @@ public class JavaDoclet {
         writer.startTag(HtmlUtil.BODY);
       } else {
         header = header.replaceAll("\\$\\{docTitle\\}", docTitle);
+        header = header.replaceAll("\\$\\{docId\\}", docId);
         writer.write(header);
       }
 
@@ -388,6 +394,7 @@ public class JavaDoclet {
         writer.endTagLn(HtmlUtil.HTML);
       } else {
         footer = footer.replaceAll("\\$\\{docTitle\\}", docTitle);
+        footer = footer.replaceAll("\\$\\{docId\\}", docId);
         writer.write(footer);
       }
       writer.endDocument();

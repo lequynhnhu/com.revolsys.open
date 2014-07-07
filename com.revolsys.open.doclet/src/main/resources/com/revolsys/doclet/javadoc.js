@@ -1,9 +1,11 @@
 function createAccordion(selector) {
   $(selector).each(function() {
     var active = false;
-    if (location.hash) {
-      if ($('a[name="' + location.hash.substring(1) + '"]', this).length > 0) {
-           active = 0;
+    if (window.location.hash) {
+      if ($('a[name="' + window.location.hash.substring(1) + '"]', this).length > 0) {
+        active = 0;
+      } else if ($(window.location.hash, this).length > 0) {
+        active = 0;
       }
     }
     if ($(this).hasClass('open')) {
@@ -19,7 +21,8 @@ function createAccordion(selector) {
       },
       collapsible : true,
       active : active,
-      autoHeight : false
+      autoHeight : true,
+      heightStyle: "content"
     });
   });
 
@@ -48,7 +51,7 @@ $(document).ready(function() {
     var source = $('<div id="' + id +'-source"/>');
     source.append(pre);
     $(tabDiv).append(source);
-    $(tabDiv).tabs();
+    $(tabDiv).tabs({ heightStyle: "content" });
   });
 
   $('div.simpleDataTable table').dataTable({
@@ -57,13 +60,14 @@ $(document).ready(function() {
     "bPaginate" : false,
     "bSort" : false,
     "bFilter" : false,
-    "bAutoWidth": false
+    "bAutoWidth": false,
+    "bRetrieve": true
   });
   
-  createAccordion('div.javaPackage');
-  createAccordion('div.javaClass');
   createAccordion('div.javaMethod');
+  createAccordion('div.javaClass');
+  createAccordion('div.javaPackage');
   prettyPrint();
   $(':button').button();
- 
+  showParents(window.location.hash); 
 });

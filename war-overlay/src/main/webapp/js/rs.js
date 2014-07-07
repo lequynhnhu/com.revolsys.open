@@ -164,10 +164,11 @@ function tableShowEvents(table, heightPercent) {
   }
 }
 
-function validateIntegerNumber(element, value, min, max) {
+function validateIntegerNumber(element, value, optional, min, max) {
+  return new function(value, element) {
   var text = $.trim(value);
   if (!text) {
-    if (this.optional(element)) {
+    if (optional) {
       return true;
     } else {
       return false;
@@ -183,12 +184,13 @@ function validateIntegerNumber(element, value, min, max) {
     }
   }
   return false;
+  }
 }
 
-function validateDecimalNumber(element, value, min, max) {
+function validateDecimalNumber(element, value, optional, min, max) {
   var text = $.trim(value);
   if (!text) {
-    if (this.optional(element)) {
+    if (optional) {
       return true;
     } else {
       return false;
@@ -208,6 +210,9 @@ function validateDecimalNumber(element, value, min, max) {
 
 $(document).ready(
   function() {
+    $('html.lt-ie9').each(function() {
+      document.createElement('section');
+    });
     addConfirmButton({
       selector : 'button.delete',
       icon : 'trash',
@@ -258,15 +263,18 @@ $(document).ready(
       },
       beforeActivate: function (event, ui) {
         window.location.hash = ui.newPanel.selector;
-      }
+      },
+      heightStyle: "content"
     });
  
     $(window).bind('hashchange', function() {
       var hash = window.location.hash;
       if (hash) {
-        var anchor = $('a.ui-tabs-anchor[href=' + hash + ']');
+        var anchor = $('a.ui-tabs-anchor[href="' + hash + '"]');
         anchor.click();
+        showParentsHash(hash);
       }
+      window.location.hash = hash;
     });
      
     $('div.objectList table').dataTable({
@@ -284,65 +292,211 @@ $(document).ready(
       "bAutoWidth": false
     });
 
-    $('div.form').each(
-      function() {
-        var formWrapper = this;
-        var form = $('form', this);
-        var validate = form.validate({
-          errorContainer : $('div.errorContainer', formWrapper),
-          errorLabelContainer: 'div.errorContainer ul',
-          wrapper : 'li',
-          errorPlacement: function(label, element) {
-            label.addClass('errorMessage');
-            label.insertAfter(element);
-          },
-          highlight : function(element, errorClass, validClass) {
-            $(element).closest('div.fieldComponent').addClass('invalid');
-            $(element).addClass(errorClass).removeClass(validClass);
-            $(element.form).find("label[for=" + element.id + "]").addClass(
-              errorClass);
-          },
-          unhighlight : function(element, errorClass, validClass) {
-            $(element).closest('div.fieldComponent').removeClass('invalid');
-            $(element).removeClass(errorClass).addClass(validClass);
-            $(element.form).find("label[for=" + element.id + "]").removeClass(
-              errorClass);
+    if (typeof jQuery.validator != "undefined") {
+      $('div.form').each(
+        function() {
+          var formWrapper = this;
+          var form = $('form', this);
+          var validator = form.bind("invalid-form.validate", function() {
+            $('div.errorContainer div.title ', formWrapper).html("The form contains errors. Update the highlighted fields to fix the errors.");
+          }).validate({
+            errorElement: "div",
+            errorContainer : $('div.errorContainer', formWrapper),
+            errorPlacement: function(error, element) {
+              error.insertBefore(element);
+              error.addClass('errorMessage');
+            },
+            highlight : function(element, errorClass, validClass) {
+              $(element).closest('div.fieldComponent').addClass('invalid');
+              $(element).addClass(errorClass).removeClass(validClass);
+              $(element.form).find("label[for=" + element.id + "]").addClass(
+                errorClass);
+              $('.tempError').hide();
+            },
+            unhighlight : function(element, errorClass, validClass) {
+              $(element).closest('div.fieldComponent').removeClass('invalid');
+              $(element).removeClass(errorClass).addClass(validClass);
+              $(element.form).find("label[for=" + element.id + "]").removeClass(
+                errorClass);
+              $('.tempError').hide();
+            }
+          });
+          if ($(formWrapper).hasClass('formInvalid')) {
+            validator.form();
           }
-        });
-        if ($(formWrapper).hasClass('formInvalid')) {
-          validate.form();
         }
-      });
+      );
 
-    jQuery.validator.addMethod("integer", function(value, element) {
-      return validateIntegerNumber(element, value);
-    }, "Please enter a valid integer number.");
-
-    jQuery.validator.addMethod("byte", function(value, element) {
-      return validateIntegerNumber(element, value, -128, 127);
-    }, "Please enter a valid integer number -128 >=< 127.");
-
-    jQuery.validator.addMethod("short", function(value, element) {
-      return validateIntegerNumber(element, value, -32768, 32767);
-    }, "Please enter a valid integer number -32768 >=< 32767.");
-
-    jQuery.validator.addMethod("int", function(value, element) {
-      return validateIntegerNumber(element, value, -2147483648, 2147483647);
-    }, "Please enter a valid integer number -2147483648 >=< 2147483647.");
-
-    jQuery.validator.addMethod("long", function(value, element) {
-      return validateIntegerNumber(element, value, -9223372036854775808, 9223372036854775807);
-    }, "Please enter a valid integer number -9223372036854775808 >=< 9223372036854775807.");
-
-    jQuery.validator.addMethod("number", function(value, element) {
-      return validateDecimalNumber(element, value);
-    }, "Please enter a valid number.");
-
-    jQuery.validator.addMethod("float", function(value, element) {
-      return validateDecimalNumber(element, value);
-    }, "Please enter a valid float number.");
-
-    jQuery.validator.addMethod("double", function(value, element) {
-      return validateDecimalNumber(element, value);
-    }, "Please enter a valid double number.");
+      jQuery.validator.addMethod("integer", function(value, element) {
+        return validateIntegerNumber(element, value, this.optional(element));
+      }, "Please enter a valid integer number.");
+  
+      jQuery.validator.addMethod("byte", function(value, element) {
+        return validateIntegerNumber(element, value, this.optional(element), -128, 127);
+      }, "Please enter a valid integer number -128 >=< 127.");
+  
+      jQuery.validator.addMethod("short", function(value, element) {
+        return validateIntegerNumber(element, value, this.optional(element), -32768, 32767);
+      }, "Please enter a valid integer number -32768 >=< 32767.");
+  
+      jQuery.validator.addMethod("int", function(value, element) {
+        return validateIntegerNumber(element, value, this.optional(element), -2147483648, 2147483647);
+      }, "Please enter a valid integer number -2147483648 >=< 2147483647.");
+  
+      jQuery.validator.addMethod("long", function(value, element) {
+        return validateIntegerNumber(element, value, this.optional(element), -9223372036854775808, 9223372036854775807);
+      }, "Please enter a valid integer number -9223372036854775808 >=< 9223372036854775807.");
+  
+      jQuery.validator.addMethod("number", function(value, element) {
+        return validateDecimalNumber(element, value, this.optional(element));
+      }, "Please enter a valid number.");
+  
+      jQuery.validator.addMethod("float", function(value, element) {
+        return validateDecimalNumber(element, value, this.optional(element));
+      }, "Please enter a valid float number.");
+  
+      jQuery.validator.addMethod("double", function(value, element) {
+        return validateDecimalNumber(element, value, this.optional(element));
+      }, "Please enter a valid double number.");
+    }
+    showParentsHash(window.location.hash);
   });
+
+function clearTempErrorsOnChange() {
+  $(':input').change(function() {
+    console.log($(this).attr('name'));
+    var errors = $('.tempError', $(this).closest('form'));
+    if (errors) {
+      errors.next(':input').each(function() {
+        if ($(this).val()) {
+          $(this).valid();
+        }
+        $(this).parent('div.fieldComponent').removeClass('invalid');
+      });
+      errors.remove();
+    }
+  });
+}
+
+function showParentsAClick(element) {
+  var href = $(element).attr('href');
+  showParentsHash(href);
+  return true;
+}
+
+function showParentsHash(hash) {
+  if (hash && hash.substr(0,1) == '#') {
+    showParents('[id="' + hash.substr(1) + '"]');
+    showParents('a[name="' + hash.substr(1) + '"]');
+  }
+}
+
+function showElement(element) {
+  element.removeClass('closed');
+  element.show();
+}
+
+function showParents(element) {
+  if (element) {
+    element = $(element);
+    showElement(element);
+    element.parents().each(function() {
+      showElement($(this));
+    });
+    var accordionTitle;
+    if (element.hasClass('ui-accordion-header')) {
+      accordionTitle = element;
+      showElement(element.next());
+    } else if (element.hasClass('ui-accordion-content')){
+      accordionTitle = element.prev();
+    }
+    if (accordionTitle && !accordionTitle.hasClass('ui-accordion-header-active')) {
+      accordionTitle.click();
+    }
+    element.parents('.ui-accordion-content').each(function() {
+      showParents($(this));
+    });
+  }
+}
+
+function setPageId(pageId) {
+  if (pageId) {
+    var sideMenu =  $('.sideMenu');
+    $('li > ul', sideMenu).hide(0);
+    var menuLi =  $('#' + pageId + 'Menu');
+    if (menuLi.length > 0) {
+      menuLi.parent('.sideMenu ul').show(0);
+      menuLi.addClass('selected');
+      menuLi.find('ul').show(0);
+    }
+  }
+}
+
+function createToc() {
+  var tocDiv =  $('<div class="tocMenu"/>');
+
+  $('.sideMenu').after(tocDiv);
+  tocDiv.append('<div class="title">Table of Contents</div>');
+  var tocMenu = $('<ol />');
+  tocDiv.append(tocMenu);
+  var indices = [0];
+  $(':header').each( function() {
+    var menuDepth = tocMenu.parents('.tocMenu ol').length + 1;
+    var headingType = $(this).get(0).tagName;
+    var headingDepth = headingType.substr(1,2);
+    while (headingDepth > menuDepth) {
+      var li = tocMenu.last();
+      if (li.length == 0) {
+        li = $('<li/>');
+      }
+      tocMenu.append(li);
+      tocMenu = $('<ol/>');
+      li.append(tocMenu);
+      indices.push(0);
+      menuDepth++;
+    }
+    while(headingDepth < menuDepth) {
+      tocMenu = tocMenu.parent();
+      menuDepth--;
+      indices.pop();
+    }
+    var count = indices[indices.length - 1] + 1;
+    indices[indices.length - 1] = count;
+    var id = $(this).attr('id');
+    if (!id) {
+      id = 'heading_' + indices.join('_');
+      $(this).attr('id', id);
+    }
+    var title = $(this).attr('title');
+    if (!title) {
+      title = $(this).text();
+    }
+    var link = $('<a href="#' + id + '" onclick="showParentsAClick(this)"/>').text(title);
+    $(this).prepend(indices.join('.') + '. ');
+    var cssClass='';
+    if (menuDepth > 3) {
+      cssClass = 'class="closed"';
+    }
+    tocMenu.append($('<li id="tocMenu_' + indices.join('_') + '" ' + cssClass +' />').append(link));
+  });
+  var top = tocDiv.offset().top;
+  var tocHeight = tocDiv.height();
+  var resize = function() {
+    var height = $(window).height();
+    if (tocHeight > height - 20) {
+      height -= 20;
+    } else {
+      height = tocHeight;
+    }
+    tocDiv.height( height);
+    if ($(window).scrollTop() >= top) {
+      var marginTop = ($(window).scrollTop() - top);
+      tocDiv.css('margin-top', marginTop);
+    } else {
+      tocDiv.css('margin-top', 0);
+    }  
+  };
+  $(document).resize(resize);
+  $(document).scroll(resize);
+  resize();
+}

@@ -35,7 +35,8 @@ public class RestDoclet {
   public static int optionLength(String optionName) {
     optionName = optionName.toLowerCase();
     if (optionName.equals("-d") || optionName.equals("-doctitle")
-      || optionName.equals("-htmlfooter") || optionName.equals("-htmlheader")) {
+      || optionName.equals("-docid") || optionName.equals("-htmlfooter")
+      || optionName.equals("-htmlheader")) {
       return 2;
     }
     return -1;
@@ -83,6 +84,8 @@ public class RestDoclet {
     return flag;
   }
 
+  private String docId;
+
   private String destDir = ".";
 
   private String docTitle;
@@ -110,15 +113,16 @@ public class RestDoclet {
     descriptions.add(description);
   }
 
-  public void bodyContent() {
-    writer.element(HtmlUtil.H1, docTitle);
-    DocletUtil.description(writer, null, root);
-    documentation();
-  }
-
   public void documentation() {
     writer.startTag(HtmlUtil.DIV);
+    writer.attribute(HtmlUtil.ATTR_CLASS, "javaPackage open");
+
+    HtmlUtil.elementWithId(writer, HtmlUtil.H1, docId, docTitle);
+    DocletUtil.description(writer, null, root);
     for (final PackageDoc packageDoc : root.specifiedPackages()) {
+
+      writer.startTag(HtmlUtil.DIV);
+      writer.attribute(HtmlUtil.ATTR_CLASS, "content");
       final Map<String, ClassDoc> classes = new TreeMap<String, ClassDoc>();
       for (final ClassDoc classDoc : packageDoc.ordinaryClasses()) {
         classes.put(classDoc.name(), classDoc);
@@ -127,57 +131,54 @@ public class RestDoclet {
         documentationClass(classDoc);
       }
     }
-
+    writer.endTag(HtmlUtil.DIV);
     writer.endTag(HtmlUtil.DIV);
   }
 
   public void documentationClass(final ClassDoc classDoc) {
     if (DocletUtil.hasAnnotation(classDoc,
       "org.springframework.stereotype.Controller")) {
-      writer.startTag(HtmlUtil.A);
-      writer.attribute(HtmlUtil.ATTR_NAME, DocletUtil.qualifiedName(classDoc));
-      writer.text("");
-      writer.endTag(HtmlUtil.A);
-
       writer.startTag(HtmlUtil.DIV);
       writer.attribute(HtmlUtil.ATTR_CLASS, "javaClass open");
+
+      final String id = DocletUtil.qualifiedName(classDoc);
       final String name = classDoc.name();
-      title(DocletUtil.qualifiedName(classDoc),
-        CaseConverter.toCapitalizedWords(name));
+      final String title = CaseConverter.toCapitalizedWords(name);
+      HtmlUtil.elementWithId(writer, HtmlUtil.H2, id, title);
+
       writer.startTag(HtmlUtil.DIV);
       writer.attribute(HtmlUtil.ATTR_CLASS, "content");
       DocletUtil.description(writer, classDoc, classDoc);
       documentationMethod(classDoc);
       writer.endTag(HtmlUtil.DIV);
+
       writer.endTag(HtmlUtil.DIV);
     }
   }
 
   public void documentationMethod(final ClassDoc classDoc) {
     for (final MethodDoc method : classDoc.methods()) {
-      final String methodName = method.name();
       final AnnotationDesc requestMapping = DocletUtil.getAnnotation(method,
         "org.springframework.web.bind.annotation.RequestMapping");
       if (requestMapping != null) {
         writer.startTag(HtmlUtil.DIV);
         writer.attribute(HtmlUtil.ATTR_CLASS, "javaMethod");
-        title(DocletUtil.qualifiedName(classDoc) + "." + methodName,
-          CaseConverter.toCapitalizedWords(methodName));
+
+        final String name = method.name();
+        final String id = DocletUtil.qualifiedName(classDoc) + "." + name;
+        final String title = CaseConverter.toCapitalizedWords(name);
+        HtmlUtil.elementWithId(writer, HtmlUtil.H3, id, title);
+
         writer.startTag(HtmlUtil.DIV);
         writer.attribute(HtmlUtil.ATTR_CLASS, "content");
         DocletUtil.description(writer, method.containingClass(), method);
-
         requestMethods(requestMapping);
-
         uriTemplates(requestMapping);
-
         uriTemplateParameters(method);
-
         parameters(method);
-
         responseStatus(method);
-
         writer.endTag(HtmlUtil.DIV);
+
         writer.endTag(HtmlUtil.DIV);
       }
     }
@@ -199,18 +200,18 @@ public class RestDoclet {
     writer.element(HtmlUtil.TITLE, docTitle);
     HtmlUtil.serializeCss(
       writer,
-      "http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
+      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
     HtmlUtil.serializeCss(
       writer,
-      "http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css");
+      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/cupertino/jquery-ui.css");
     HtmlUtil.serializeCss(writer, "javadoc.css");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js");
+      "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js");
+      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js");
     HtmlUtil.serializeScriptLink(
       writer,
-      "http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
+      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
     HtmlUtil.serializeScriptLink(writer, "javadoc.js");
     writer.endTag(HtmlUtil.HEAD);
   }
@@ -403,6 +404,8 @@ public class RestDoclet {
 
       } else if (optionName.equals("-doctitle")) {
         docTitle = option[1];
+      } else if (optionName.equals("-docid")) {
+        docId = option[1];
       } else if (optionName.equals("-htmlheader")) {
         header = FileUtil.getFileAsString(option[1]);
       } else if (optionName.equals("-htmlfooter")) {
@@ -434,10 +437,11 @@ public class RestDoclet {
         writer.startTag(HtmlUtil.BODY);
       } else {
         header = header.replaceAll("\\$\\{docTitle\\}", docTitle);
+        header = header.replaceAll("\\$\\{docId\\}", docId);
         writer.write(header);
       }
 
-      bodyContent();
+      documentation();
 
       if (footer == null) {
         writer.endTag(HtmlUtil.BODY);
@@ -445,6 +449,7 @@ public class RestDoclet {
         writer.endTag(HtmlUtil.HTML);
       } else {
         footer = footer.replaceAll("\\$\\{docTitle\\}", docTitle);
+        footer = footer.replaceAll("\\$\\{docId\\}", docId);
         writer.write(footer);
       }
       writer.endDocument();
@@ -453,23 +458,6 @@ public class RestDoclet {
         writer.close();
       }
     }
-  }
-
-  public void title(final String title) {
-    writer.startTag(HtmlUtil.DIV);
-    writer.attribute(HtmlUtil.ATTR_CLASS, "title");
-    writer.text(title);
-    writer.endTag(HtmlUtil.DIV);
-  }
-
-  public void title(final String name, final String title) {
-    writer.startTag(HtmlUtil.DIV);
-    writer.attribute(HtmlUtil.ATTR_CLASS, "title");
-    writer.startTag(HtmlUtil.A);
-    writer.attribute(HtmlUtil.ATTR_NAME, name);
-    writer.text(title);
-    writer.endTag(HtmlUtil.A);
-    writer.endTag(HtmlUtil.DIV);
   }
 
   private void uriTemplateParameters(final MethodDoc method) {

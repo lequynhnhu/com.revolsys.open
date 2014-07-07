@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.util.StringUtils;
+
 import com.revolsys.io.xml.XmlWriter;
 
 public final class HtmlUtil {
@@ -121,6 +123,10 @@ public final class HtmlUtil {
 
   public static final QName H4 = new QName(HTML_NS_URI, "h4", HTML_NS_PREFIX);
 
+  public static final QName H5 = new QName(HTML_NS_URI, "h5", HTML_NS_PREFIX);
+
+  public static final QName H6 = new QName(HTML_NS_URI, "h6", HTML_NS_PREFIX);
+
   public static final QName HEAD = new QName(HTML_NS_URI, "head",
     HTML_NS_PREFIX);
 
@@ -202,6 +208,16 @@ public final class HtmlUtil {
   public static final QName ATTR_HTTP_EQUIV = new QName("http-equiv");
 
   public static final QName ATTR_CONTENT = new QName("content");
+
+  public static void elementWithId(final XmlWriter writer, final QName tag,
+    final String id, final Object content) {
+    writer.startTag(tag);
+    if (StringUtils.hasText(id)) {
+      writer.attribute(ATTR_ID, id.replaceAll("[^A-Za-z0-9\\-:.]", "_"));
+    }
+    writer.text(content);
+    writer.endTag(tag);
+  }
 
   public static void serializeA(final XmlWriter out, final String cssClass,
     final Object url, final Object content) {

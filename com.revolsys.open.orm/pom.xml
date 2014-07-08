@@ -6,7 +6,7 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>2014.04.29-GEOMARK</version>
+    <version>GEOMARK-SNAPSHOT</version>
   </parent>
 
   <dependencies>

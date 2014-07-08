@@ -11,10 +11,8 @@
   </parent>
   
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.revolsys.open</groupId>
-  <artifactId>tests</artifactId>
+   <artifactId>tests</artifactId>
   <name>GIS Tools</name>
-  <version>CPF-SNAPSHOT</version>
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>

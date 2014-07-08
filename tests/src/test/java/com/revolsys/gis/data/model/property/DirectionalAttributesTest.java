@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
@@ -97,7 +95,7 @@ public class DirectionalAttributesTest {
     DIRECTIONAL_VALUES.put(BACKWARDS, FORWARDS);
     DIRECTIONAL_VALUES.put(EITHER, EITHER);
 
-    TABLE = new DataObjectMetaDataImpl(new QName("Directional"));
+    TABLE = new DataObjectMetaDataImpl("Directional");
     TABLE.addAttribute(DIRECTIONAL, DataTypes.STRING, false);
     TABLE.addAttribute(LEFT, DataTypes.BOOLEAN, false);
     TABLE.addAttribute(RIGHT, DataTypes.BOOLEAN, false);
@@ -120,8 +118,8 @@ public class DirectionalAttributesTest {
     DIRECTIONAL_ATTRIBUTES.addEndAttributePair(START, END);
     DIRECTIONAL_ATTRIBUTES.addEndAndSideAttributePairs(START_LEFT, START_RIGHT,
       END_LEFT, END_RIGHT);
-    DIRECTIONAL_ATTRIBUTES.addEndTurnAttributePairs(START_LEFT_TURN, START_RIGHT_TURN,
-      END_LEFT_TURN, END_RIGHT_TURN);
+    DIRECTIONAL_ATTRIBUTES.addEndTurnAttributePairs(START_LEFT_TURN,
+      START_RIGHT_TURN, END_LEFT_TURN, END_RIGHT_TURN);
   }
 
   private void assertAttributeEquals(final String message,
@@ -162,9 +160,9 @@ public class DirectionalAttributesTest {
     final DataObject object1 = createObject(line1, DIRECTIONAL, value1);
     final DataObject object2 = createObject(line2, DIRECTIONAL, value2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     Assert.assertFalse("Directional attribute not can merge " + value1 + " == "
-      + value2, canMerge);
+        + value2, canMerge);
   }
 
   private void assertDirectionalAttributesNotEqual(final LineString line1,
@@ -173,15 +171,15 @@ public class DirectionalAttributesTest {
     final DataObject object2 = createObject(line2, DIRECTIONAL, value2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     Assert.assertFalse("Directional attribute not equal" + value1 + " == "
-      + value2, equals);
+        + value2, equals);
   }
 
   private void assertDirectionalAttributesReverse(final String value,
     final String expectedReverseValue) {
-    final DataObject object = createObject(LINE1, DIRECTIONAL, value);
+    final DataObject object = createObject(this.LINE1, DIRECTIONAL, value);
     final DataObject reverse = reverse(object);
     final LineString reverseLine = reverse.getGeometryValue();
-    Assert.assertTrue("Reverse line", REVERSE_LINE1.equals(reverseLine));
+    Assert.assertTrue("Reverse line", this.REVERSE_LINE1.equals(reverseLine));
 
     assertAttributeEquals("Directional reverse attribute", reverse,
       DIRECTIONAL, expectedReverseValue);
@@ -224,7 +222,7 @@ public class DirectionalAttributesTest {
     DataObject mergedObject = null;
     try {
       final boolean canMerge = DirectionalAttributes.canMergeObjects(
-        MERGE_COORDINATES, object1, object2);
+        this.MERGE_COORDINATES, object1, object2);
       Assert.assertTrue("End & Side attribute can't merge", canMerge);
 
       mergedObject = DirectionalAttributes.mergeLongest(object1, object2);
@@ -266,7 +264,7 @@ public class DirectionalAttributesTest {
       START_RIGHT, startRightValue2, END_LEFT, endLeftValue2, END_RIGHT,
       endRightValue2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     try {
       Assert.assertFalse("Side attribute not can't merge", canMerge);
     } catch (final AssertionFailedError e) {
@@ -300,12 +298,12 @@ public class DirectionalAttributesTest {
   private void assertEndAndSideAttributesReverse(final String startLeftValue,
     final String startRightValue, final String endLeftValue,
     final String endRightValue) {
-    final DataObject object = createObject(LINE1, START_LEFT, startLeftValue,
-      START_RIGHT, startRightValue, END_LEFT, endLeftValue, END_RIGHT,
-      endRightValue);
+    final DataObject object = createObject(this.LINE1, START_LEFT,
+      startLeftValue, START_RIGHT, startRightValue, END_LEFT, endLeftValue,
+      END_RIGHT, endRightValue);
     final DataObject reverse = reverse(object);
     final LineString reverseLine = reverse.getGeometryValue();
-    Assert.assertTrue("Reverse line", REVERSE_LINE1.equals(reverseLine));
+    Assert.assertTrue("Reverse line", this.REVERSE_LINE1.equals(reverseLine));
 
     assertAttributeEquals("End reverse attribute (startLeft->endRight)",
       reverse, END_RIGHT, startLeftValue);
@@ -326,7 +324,7 @@ public class DirectionalAttributesTest {
       endValue2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     Assert.assertTrue("End attribute equal " + startValue1 + " != "
-      + startValue2 + " &  " + endValue1 + " != " + endValue2, equals);
+        + startValue2 + " &  " + endValue1 + " != " + endValue2, equals);
   }
 
   private void assertEndAttributesMerge(final LineString line1,
@@ -339,9 +337,9 @@ public class DirectionalAttributesTest {
     final DataObject object2 = createObject(line2, START, startValue2, END,
       endValue2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     Assert.assertTrue("End attribute can merge  " + startValue1 + " != "
-      + startValue2 + " &  " + endValue1 + " != " + endValue2, canMerge);
+        + startValue2 + " &  " + endValue1 + " != " + endValue2, canMerge);
     final DataObject mergedObject = DirectionalAttributes.mergeLongest(object1,
       object2);
 
@@ -352,8 +350,8 @@ public class DirectionalAttributesTest {
 
     final LineString mergedLine = mergedObject.getGeometryValue();
     Assert.assertTrue("End attribute merge line " + expectedMergedLine + " != "
-      + mergedLine,
-      LineStringUtil.equalsExact2d(expectedMergedLine, mergedLine));
+        + mergedLine,
+        LineStringUtil.equalsExact2d(expectedMergedLine, mergedLine));
   }
 
   private void assertEndAttributesNotCanMerge(final LineString line1,
@@ -364,9 +362,9 @@ public class DirectionalAttributesTest {
     final DataObject object2 = createObject(line2, START, startValue2, END,
       endValue2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     Assert.assertFalse("Side attribute not can merge  " + startValue1 + " == "
-      + startValue2 + " ||  " + endValue1 + " == " + endValue2, canMerge);
+        + startValue2 + " ||  " + endValue1 + " == " + endValue2, canMerge);
   }
 
   private void assertEndAttributesNotEqual(final LineString line1,
@@ -378,16 +376,16 @@ public class DirectionalAttributesTest {
       endValue2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     Assert.assertFalse("Side attribute not equal " + startValue1 + " == "
-      + startValue2 + " &  " + endValue1 + " == " + endValue2, equals);
+        + startValue2 + " &  " + endValue1 + " == " + endValue2, equals);
   }
 
   private void assertEndAttributesReverse(final Boolean startValue,
     final Boolean endValue) {
-    final DataObject object = createObject(LINE1, START, startValue, END,
+    final DataObject object = createObject(this.LINE1, START, startValue, END,
       endValue);
     final DataObject reverse = reverse(object);
     final LineString reverseLine = reverse.getGeometryValue();
-    Assert.assertTrue("Reverse line", REVERSE_LINE1.equals(reverseLine));
+    Assert.assertTrue("Reverse line", this.REVERSE_LINE1.equals(reverseLine));
 
     assertAttributeEquals("Side reverse attribute (start->end)", reverse, END,
       startValue);
@@ -404,9 +402,9 @@ public class DirectionalAttributesTest {
     final DataObject object1 = createObject(line1, START_LEFT_TURN,
       startLeftValue1, START_RIGHT_TURN, startRightValue1, END_LEFT_TURN,
       endLeftValue1, END_RIGHT_TURN, endRightValue1);
-    final DataObject object2 = createObject(line2, START_LEFT_TURN, startLeftValue2,
-      START_RIGHT_TURN, startRightValue2, END_LEFT_TURN, endLeftValue2,
-      END_RIGHT_TURN, endRightValue2);
+    final DataObject object2 = createObject(line2, START_LEFT_TURN,
+      startLeftValue2, START_RIGHT_TURN, startRightValue2, END_LEFT_TURN,
+      endLeftValue2, END_RIGHT_TURN, endRightValue2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     if (!equals) {
       LOG.error(object1.toString());
@@ -432,7 +430,7 @@ public class DirectionalAttributesTest {
     DataObject mergedObject = null;
     try {
       final boolean canMerge = DirectionalAttributes.canMergeObjects(
-        MERGE_COORDINATES, object1, object2);
+        this.MERGE_COORDINATES, object1, object2);
       Assert.assertTrue("End & Side attribute can't merge", canMerge);
 
       mergedObject = DirectionalAttributes.mergeLongest(object1, object2);
@@ -474,7 +472,7 @@ public class DirectionalAttributesTest {
       startLeftValue2, START_RIGHT_TURN, startRightValue2, END_LEFT_TURN,
       endLeftValue2, END_RIGHT_TURN, endRightValue2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     try {
       Assert.assertFalse("End turn attribute not can't merge", canMerge);
     } catch (final AssertionFailedError e) {
@@ -508,12 +506,12 @@ public class DirectionalAttributesTest {
   private void assertEndTurnAttributesReverse(final String startLeftValue,
     final String startRightValue, final String endLeftValue,
     final String endRightValue) {
-    final DataObject object = createObject(LINE1, START_LEFT_TURN,
+    final DataObject object = createObject(this.LINE1, START_LEFT_TURN,
       startLeftValue, START_RIGHT_TURN, startRightValue, END_LEFT_TURN,
       endLeftValue, END_RIGHT_TURN, endRightValue);
     final DataObject reverse = reverse(object);
     final LineString reverseLine = reverse.getGeometryValue();
-    Assert.assertTrue("Reverse line", REVERSE_LINE1.equals(reverseLine));
+    Assert.assertTrue("Reverse line", this.REVERSE_LINE1.equals(reverseLine));
 
     assertAttributeEquals(
       "End turn reverse attribute (endRight->startRightValue)", reverse,
@@ -538,7 +536,7 @@ public class DirectionalAttributesTest {
       endValue2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     Assert.assertTrue("Side attribute equal " + startValue1 + " != "
-      + startValue2 + " &  " + endValue1 + " != " + endValue2, equals);
+        + startValue2 + " &  " + endValue1 + " != " + endValue2, equals);
   }
 
   private void assertSideAttributesMerge(final LineString line1,
@@ -571,7 +569,7 @@ public class DirectionalAttributesTest {
     final DataObject object2 = createObject(line2, LEFT, leftValue2, RIGHT,
       endValue2);
     final boolean canMerge = DirectionalAttributes.canMergeObjects(
-      MERGE_COORDINATES, object1, object2);
+      this.MERGE_COORDINATES, object1, object2);
     try {
       Assert.assertFalse("Side attribute not can't merge", canMerge);
     } catch (final AssertionFailedError e) {
@@ -591,16 +589,16 @@ public class DirectionalAttributesTest {
       endValue2);
     final boolean equals = DirectionalAttributes.equalsObjects(object1, object2);
     Assert.assertFalse("Side attribute not equal " + leftValue1 + " == "
-      + leftValue2 + " &  " + endValue1 + " == " + endValue2, equals);
+        + leftValue2 + " &  " + endValue1 + " == " + endValue2, equals);
   }
 
   private void assertSideAttributesReverse(final Boolean leftValue,
     final Boolean rightValue) {
-    final DataObject object = createObject(LINE1, LEFT, leftValue, RIGHT,
+    final DataObject object = createObject(this.LINE1, LEFT, leftValue, RIGHT,
       rightValue);
     final DataObject reverse = reverse(object);
     final LineString reverseLine = reverse.getGeometryValue();
-    Assert.assertTrue("Reverse line", REVERSE_LINE1.equals(reverseLine));
+    Assert.assertTrue("Reverse line", this.REVERSE_LINE1.equals(reverseLine));
 
     assertAttributeEquals("Side reverse attribute (left->right)", reverse,
       RIGHT, leftValue);
@@ -659,19 +657,21 @@ public class DirectionalAttributesTest {
     for (final String value : Arrays.asList(null, FORWARDS, BACKWARDS, EITHER,
       OTHER)) {
       final String reverseValue = getReverseValue(value);
-      assertDirectionalAttributesEqual(LINE1, value, LINE1, value);
-      assertDirectionalAttributesEqual(LINE1, value, REVERSE_LINE1,
+      assertDirectionalAttributesEqual(this.LINE1, value, this.LINE1, value);
+      assertDirectionalAttributesEqual(this.LINE1, value, this.REVERSE_LINE1,
         reverseValue);
-      assertDirectionalAttributesEqual(LINE2, value, LINE2, value);
-      assertDirectionalAttributesEqual(LINE2, value, REVERSE_LINE2,
+      assertDirectionalAttributesEqual(this.LINE2, value, this.LINE2, value);
+      assertDirectionalAttributesEqual(this.LINE2, value, this.REVERSE_LINE2,
         reverseValue);
     }
 
     for (final String value : Arrays.asList(FORWARDS, BACKWARDS)) {
-      assertDirectionalAttributesNotEqual(LINE1, value, REVERSE_LINE1, value);
+      assertDirectionalAttributesNotEqual(this.LINE1, value,
+        this.REVERSE_LINE1, value);
     }
-    assertDirectionalAttributesNotEqual(LINE1, EITHER, REVERSE_LINE1, OTHER);
-    assertDirectionalAttributesNotEqual(LINE1, null, LINE2, null);
+    assertDirectionalAttributesNotEqual(this.LINE1, EITHER, this.REVERSE_LINE1,
+      OTHER);
+    assertDirectionalAttributesNotEqual(this.LINE1, null, this.LINE2, null);
   }
 
   @Test
@@ -679,31 +679,35 @@ public class DirectionalAttributesTest {
     for (final String value : Arrays.asList(null, FORWARDS, BACKWARDS, EITHER,
       OTHER)) {
       final String reverseValue = getReverseValue(value);
-      assertDirectionalAttributesMerge(LINE1, value, LINE2, value, MERGED_LINE,
-        value);
-      assertDirectionalAttributesMerge(LINE2, value, LINE1, value, MERGED_LINE,
-        value);
-      assertDirectionalAttributesMerge(REVERSE_LINE1, value, REVERSE_LINE2,
-        value, REVERSE_MERGED_LINE, value);
-      assertDirectionalAttributesMerge(REVERSE_LINE2, value, REVERSE_LINE1,
-        value, REVERSE_MERGED_LINE, value);
-      assertDirectionalAttributesMerge(LINE1, value, REVERSE_LINE2,
-        reverseValue, MERGED_LINE, value);
-      assertDirectionalAttributesMerge(REVERSE_LINE2, value, LINE1,
-        reverseValue, MERGED_LINE, reverseValue);
-      assertDirectionalAttributesMerge(LINE2, value, REVERSE_LINE1,
-        reverseValue, REVERSE_MERGED_LINE, reverseValue);
-      assertDirectionalAttributesMerge(REVERSE_LINE1, value, LINE2,
-        reverseValue, REVERSE_MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.LINE1, value, this.LINE2, value,
+        this.MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.LINE2, value, this.LINE1, value,
+        this.MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.REVERSE_LINE1, value,
+        this.REVERSE_LINE2, value, this.REVERSE_MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.REVERSE_LINE2, value,
+        this.REVERSE_LINE1, value, this.REVERSE_MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.LINE1, value, this.REVERSE_LINE2,
+        reverseValue, this.MERGED_LINE, value);
+      assertDirectionalAttributesMerge(this.REVERSE_LINE2, value, this.LINE1,
+        reverseValue, this.MERGED_LINE, reverseValue);
+      assertDirectionalAttributesMerge(this.LINE2, value, this.REVERSE_LINE1,
+        reverseValue, this.REVERSE_MERGED_LINE, reverseValue);
+      assertDirectionalAttributesMerge(this.REVERSE_LINE1, value, this.LINE2,
+        reverseValue, this.REVERSE_MERGED_LINE, value);
     }
     for (final String value : Arrays.asList(FORWARDS, BACKWARDS)) {
-      assertDirectionalAttributesNotCanMerge(LINE1, value, REVERSE_LINE2, value);
-      assertDirectionalAttributesNotCanMerge(REVERSE_LINE2, value, LINE1, value);
-      assertDirectionalAttributesNotCanMerge(LINE2, value, REVERSE_LINE1, value);
-      assertDirectionalAttributesNotCanMerge(REVERSE_LINE1, value, LINE2, value);
+      assertDirectionalAttributesNotCanMerge(this.LINE1, value,
+        this.REVERSE_LINE2, value);
+      assertDirectionalAttributesNotCanMerge(this.REVERSE_LINE2, value,
+        this.LINE1, value);
+      assertDirectionalAttributesNotCanMerge(this.LINE2, value,
+        this.REVERSE_LINE1, value);
+      assertDirectionalAttributesNotCanMerge(this.REVERSE_LINE1, value,
+        this.LINE2, value);
     }
-    assertDirectionalAttributesNotCanMerge(LINE1, null, LINE1, null);
-    assertDirectionalAttributesNotCanMerge(LINE1, null, LINE3, null);
+    assertDirectionalAttributesNotCanMerge(this.LINE1, null, this.LINE1, null);
+    assertDirectionalAttributesNotCanMerge(this.LINE1, null, this.LINE3, null);
   }
 
   @Test
@@ -719,21 +723,21 @@ public class DirectionalAttributesTest {
   public void testEndAndSideAttributesEqual() {
     for (final String startLeftValue : Arrays.asList("A", "B", "C", "D", null)) {
       for (final String startRightValue : Arrays.asList("B", "C", "D", null,
-        "A")) {
+          "A")) {
         for (final String endLeftValue : Arrays.asList("C", "D", null, "A", "B")) {
           for (final String endRightValue : Arrays.asList("D", null, "A", "B",
-            "C")) {
-            assertEndAndSideAttributesEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, LINE1,
+              "C")) {
+            assertEndAndSideAttributesEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.LINE1,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
-            assertEndAndSideAttributesEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE1,
+            assertEndAndSideAttributesEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE1,
               endRightValue, endLeftValue, startRightValue, startLeftValue);
-            assertEndAndSideAttributesEqual(LINE2, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, LINE2,
+            assertEndAndSideAttributesEqual(this.LINE2, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.LINE2,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
-            assertEndAndSideAttributesEqual(LINE2, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE2,
+            assertEndAndSideAttributesEqual(this.LINE2, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE2,
               endRightValue, endLeftValue, startRightValue, startLeftValue);
           }
         }
@@ -744,41 +748,42 @@ public class DirectionalAttributesTest {
       for (final String startRightValue : Arrays.asList("B", null)) {
         for (final String endLeftValue : Arrays.asList("C", null)) {
           for (final String endRightValue : Arrays.asList("D")) {
-            assertEndAndSideAttributesNotEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE1,
+            assertEndAndSideAttributesNotEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE1,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
           }
         }
       }
     }
-    assertEndAndSideAttributesNotEqual(LINE1, null, null, null, null, LINE2,
-      null, null, null, null);
+    assertEndAndSideAttributesNotEqual(this.LINE1, null, null, null, null,
+      this.LINE2, null, null, null, null);
   }
 
   @Test
   public void testEndAndSideAttributesMerge() {
     for (final String startLeftValue : Arrays.asList("A", "B", "C", "D", null)) {
       for (final String startRightValue : Arrays.asList("B", "C", "D", null,
-        "A")) {
+          "A")) {
         for (final String endLeftValue : Arrays.asList("C", "D", null, "A", "B")) {
           for (final String endRightValue : Arrays.asList("D", null, "A", "B",
-            "C")) {
-            assertEndAndSideAttributesMerge(LINE1, startLeftValue,
-              startRightValue, null, null, LINE2, null, null, endLeftValue,
-              endRightValue, MERGED_LINE, startLeftValue, startRightValue,
-              endLeftValue, endRightValue);
-            assertEndAndSideAttributesMerge(LINE1, startLeftValue,
-              startRightValue, null, null, REVERSE_LINE2, endRightValue,
-              endLeftValue, null, null, MERGED_LINE, startLeftValue,
+              "C")) {
+            assertEndAndSideAttributesMerge(this.LINE1, startLeftValue,
+              startRightValue, null, null, this.LINE2, null, null,
+              endLeftValue, endRightValue, this.MERGED_LINE, startLeftValue,
               startRightValue, endLeftValue, endRightValue);
-            assertEndAndSideAttributesMerge(REVERSE_LINE1, null, null,
-              startLeftValue, startRightValue, LINE2, null, null,
-              endRightValue, endLeftValue, REVERSE_MERGED_LINE, endLeftValue,
-              endRightValue, startLeftValue, startRightValue);
-            assertEndAndSideAttributesMerge(REVERSE_LINE1, null, null,
-              startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
-              endRightValue, null, null, REVERSE_MERGED_LINE, endLeftValue,
-              endRightValue, startLeftValue, startRightValue);
+            assertEndAndSideAttributesMerge(this.LINE1, startLeftValue,
+              startRightValue, null, null, this.REVERSE_LINE2, endRightValue,
+              endLeftValue, null, null, this.MERGED_LINE, startLeftValue,
+              startRightValue, endLeftValue, endRightValue);
+            assertEndAndSideAttributesMerge(this.REVERSE_LINE1, null, null,
+              startLeftValue, startRightValue, this.LINE2, null, null,
+              endRightValue, endLeftValue, this.REVERSE_MERGED_LINE,
+              endLeftValue, endRightValue, startLeftValue, startRightValue);
+            assertEndAndSideAttributesMerge(this.REVERSE_LINE1, null, null,
+              startLeftValue, startRightValue, this.REVERSE_LINE2,
+              endLeftValue, endRightValue, null, null,
+              this.REVERSE_MERGED_LINE, endLeftValue, endRightValue,
+              startLeftValue, startRightValue);
           }
         }
       }
@@ -788,69 +793,70 @@ public class DirectionalAttributesTest {
     final String endLeftValue = "C";
     final String endRightValue = "D";
 
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, null, LINE2, startLeftValue, null, endLeftValue,
-      endRightValue);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, null, LINE2, null, startRightValue, endLeftValue,
-      endRightValue);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, null, REVERSE_LINE2, endLeftValue, null,
-      startLeftValue, startRightValue);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, null, REVERSE_LINE2, null, endRightValue,
-      startLeftValue, startRightValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, LINE2, startLeftValue, null,
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.LINE2, startLeftValue, null,
       endLeftValue, endRightValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, LINE2, null, startRightValue,
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.LINE2, null, startRightValue,
       endLeftValue, endRightValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.REVERSE_LINE2, endLeftValue, null,
+      startLeftValue, startRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.REVERSE_LINE2, null, endRightValue,
+      startLeftValue, startRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.LINE2, startLeftValue, null,
+      endLeftValue, endRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.LINE2, null, startRightValue,
+      endLeftValue, endRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, startLeftValue, startRightValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, null, startRightValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, startLeftValue, null);
 
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, endLeftValue, null, LINE2, null, null, endLeftValue,
-      endRightValue);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, endRightValue, LINE2, null, null, endLeftValue,
-      endRightValue);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, endLeftValue, null, REVERSE_LINE2, endLeftValue,
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, endLeftValue, null, this.LINE2, null, null,
+      endLeftValue, endRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, endRightValue, this.LINE2, null, null,
+      endLeftValue, endRightValue);
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, endLeftValue, null, this.REVERSE_LINE2, endLeftValue,
       endRightValue, null, null);
-    assertEndAndSideAttributesNotCanMerge(LINE1, startLeftValue,
-      startRightValue, null, endRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, endRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, null, null);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, endLeftValue,
-      endRightValue, startLeftValue, startRightValue, LINE2, null, null, null,
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue,
+      endRightValue, startLeftValue, startRightValue, this.LINE2, null, null,
+      null, endLeftValue);
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue,
+      null, startLeftValue, startRightValue, this.LINE2, null, null, null,
       endLeftValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, endLeftValue, null,
-      startLeftValue, startRightValue, LINE2, null, null, null, endLeftValue);
-    assertEndAndSideAttributesNotCanMerge(REVERSE_LINE1, endLeftValue, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue, null, null,
-      null);
+    assertEndAndSideAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue,
+      null, startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
+      null, null, null);
 
-    assertEndAndSideAttributesNotCanMerge(LINE1, null, null, null, null, LINE1,
-      null, null, null, null);
-    assertEndAndSideAttributesNotCanMerge(LINE1, null, null, null, null, LINE3,
-      null, null, null, null);
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, null, null, null, null,
+      this.LINE1, null, null, null, null);
+    assertEndAndSideAttributesNotCanMerge(this.LINE1, null, null, null, null,
+      this.LINE3, null, null, null, null);
   }
 
   @Test
   public void testEndAndSideAttributesReverse() {
     for (final String startLeftValue : Arrays.asList(null, "A", "B", "C", "D")) {
       for (final String startRightValue : Arrays.asList(null, "A", "B", "C",
-        "D")) {
+          "D")) {
         for (final String endLeftValue : Arrays.asList(null, "A", "B", "C", "D")) {
           for (final String endRightValue : Arrays.asList(null, "A", "B", "C",
-            "D")) {
+              "D")) {
             assertEndAndSideAttributesReverse(startLeftValue, startRightValue,
               endLeftValue, endRightValue);
           }
@@ -863,62 +869,66 @@ public class DirectionalAttributesTest {
   public void testEndAttributesEqual() {
     for (final Boolean startValue : Arrays.asList(null, false, true)) {
       for (final Boolean endValue : Arrays.asList(null, false, true)) {
-        assertEndAttributesEqual(LINE1, startValue, endValue, LINE1,
+        assertEndAttributesEqual(this.LINE1, startValue, endValue, this.LINE1,
           startValue, endValue);
-        assertEndAttributesEqual(LINE1, startValue, endValue, REVERSE_LINE1,
-          endValue, startValue);
-        assertEndAttributesEqual(LINE2, startValue, endValue, LINE2,
+        assertEndAttributesEqual(this.LINE1, startValue, endValue,
+          this.REVERSE_LINE1, endValue, startValue);
+        assertEndAttributesEqual(this.LINE2, startValue, endValue, this.LINE2,
           startValue, endValue);
-        assertEndAttributesEqual(LINE2, startValue, endValue, REVERSE_LINE2,
-          endValue, startValue);
+        assertEndAttributesEqual(this.LINE2, startValue, endValue,
+          this.REVERSE_LINE2, endValue, startValue);
       }
     }
 
     for (final Boolean startValue : Arrays.asList(false, true)) {
       final Boolean endValue = !startValue;
-      assertEndAttributesNotEqual(LINE1, startValue, endValue, REVERSE_LINE1,
-        startValue, endValue);
+      assertEndAttributesNotEqual(this.LINE1, startValue, endValue,
+        this.REVERSE_LINE1, startValue, endValue);
     }
-    assertEndAttributesNotEqual(LINE1, null, null, LINE2, null, null);
+    assertEndAttributesNotEqual(this.LINE1, null, null, this.LINE2, null, null);
   }
 
   @Test
   public void testEndAttributesMerge() {
     for (final Boolean startValue : Arrays.asList(true, false, null)) {
       for (final Boolean endValue : Arrays.asList(false, true, null)) {
-        assertEndAttributesMerge(LINE1, startValue, null, LINE2, null,
-          endValue, MERGED_LINE, startValue, endValue);
-        assertEndAttributesMerge(LINE1, startValue, null, REVERSE_LINE2,
-          endValue, null, MERGED_LINE, startValue, endValue);
-        assertEndAttributesMerge(REVERSE_LINE1, null, startValue, LINE2, null,
-          endValue, REVERSE_MERGED_LINE, endValue, startValue);
-        assertEndAttributesMerge(REVERSE_LINE1, null, startValue,
-          REVERSE_LINE2, endValue, null, REVERSE_MERGED_LINE, endValue,
+        assertEndAttributesMerge(this.LINE1, startValue, null, this.LINE2,
+          null, endValue, this.MERGED_LINE, startValue, endValue);
+        assertEndAttributesMerge(this.LINE1, startValue, null,
+          this.REVERSE_LINE2, endValue, null, this.MERGED_LINE, startValue,
+          endValue);
+        assertEndAttributesMerge(this.REVERSE_LINE1, null, startValue,
+          this.LINE2, null, endValue, this.REVERSE_MERGED_LINE, endValue,
           startValue);
+        assertEndAttributesMerge(this.REVERSE_LINE1, null, startValue,
+          this.REVERSE_LINE2, endValue, null, this.REVERSE_MERGED_LINE,
+          endValue, startValue);
       }
     }
     for (final Boolean startValue : Arrays.asList(false, true)) {
       final Boolean endValue = !startValue;
-      assertEndAttributesNotCanMerge(LINE1, startValue, null, LINE2,
+      assertEndAttributesNotCanMerge(this.LINE1, startValue, null, this.LINE2,
         startValue, endValue);
-      assertEndAttributesNotCanMerge(LINE1, startValue, null, REVERSE_LINE2,
-        endValue, startValue);
-      assertEndAttributesNotCanMerge(REVERSE_LINE1, null, startValue, LINE2,
-        startValue, endValue);
-      assertEndAttributesNotCanMerge(REVERSE_LINE1, null, startValue,
-        REVERSE_LINE2, endValue, startValue);
+      assertEndAttributesNotCanMerge(this.LINE1, startValue, null,
+        this.REVERSE_LINE2, endValue, startValue);
+      assertEndAttributesNotCanMerge(this.REVERSE_LINE1, null, startValue,
+        this.LINE2, startValue, endValue);
+      assertEndAttributesNotCanMerge(this.REVERSE_LINE1, null, startValue,
+        this.REVERSE_LINE2, endValue, startValue);
 
-      assertEndAttributesNotCanMerge(LINE1, startValue, endValue, LINE2, null,
-        endValue);
-      assertEndAttributesNotCanMerge(LINE1, startValue, endValue,
-        REVERSE_LINE2, endValue, null);
-      assertEndAttributesNotCanMerge(REVERSE_LINE1, endValue, startValue,
-        LINE2, null, endValue);
-      assertEndAttributesNotCanMerge(REVERSE_LINE1, endValue, startValue,
-        REVERSE_LINE2, endValue, null);
+      assertEndAttributesNotCanMerge(this.LINE1, startValue, endValue,
+        this.LINE2, null, endValue);
+      assertEndAttributesNotCanMerge(this.LINE1, startValue, endValue,
+        this.REVERSE_LINE2, endValue, null);
+      assertEndAttributesNotCanMerge(this.REVERSE_LINE1, endValue, startValue,
+        this.LINE2, null, endValue);
+      assertEndAttributesNotCanMerge(this.REVERSE_LINE1, endValue, startValue,
+        this.REVERSE_LINE2, endValue, null);
     }
-    assertEndAttributesNotCanMerge(LINE1, null, null, LINE1, null, null);
-    assertEndAttributesNotCanMerge(LINE1, null, null, LINE3, null, null);
+    assertEndAttributesNotCanMerge(this.LINE1, null, null, this.LINE1, null,
+      null);
+    assertEndAttributesNotCanMerge(this.LINE1, null, null, this.LINE3, null,
+      null);
   }
 
   @Test
@@ -934,22 +944,22 @@ public class DirectionalAttributesTest {
   public void testEndTurnAttributesEqual() {
     for (final String startLeftValue : Arrays.asList("A", "B", "C", "D", null)) {
       for (final String startRightValue : Arrays.asList("B", "C", "D", null,
-        "A")) {
+          "A")) {
         for (final String endLeftValue : Arrays.asList("C", "D", null, "A", "B")) {
           for (final String endRightValue : Arrays.asList("D", null, "A", "B",
-            "C")) {
-            assertEndTurnAttributesEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, LINE1,
+              "C")) {
+            assertEndTurnAttributesEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.LINE1,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
-            assertEndTurnAttributesEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE1,
-              endLeftValue,endRightValue, startLeftValue,  startRightValue);
-            assertEndTurnAttributesEqual(LINE2, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, LINE2,
+            assertEndTurnAttributesEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE1,
+              endLeftValue, endRightValue, startLeftValue, startRightValue);
+            assertEndTurnAttributesEqual(this.LINE2, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.LINE2,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
-            assertEndTurnAttributesEqual(LINE2, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE2,
-              endLeftValue,endRightValue, startLeftValue,  startRightValue);
+            assertEndTurnAttributesEqual(this.LINE2, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE2,
+              endLeftValue, endRightValue, startLeftValue, startRightValue);
           }
         }
       }
@@ -959,41 +969,42 @@ public class DirectionalAttributesTest {
       for (final String startRightValue : Arrays.asList("B", null)) {
         for (final String endLeftValue : Arrays.asList("C", null)) {
           for (final String endRightValue : Arrays.asList("D")) {
-            assertEndTurnAttributesNotEqual(LINE1, startLeftValue,
-              startRightValue, endLeftValue, endRightValue, REVERSE_LINE1,
+            assertEndTurnAttributesNotEqual(this.LINE1, startLeftValue,
+              startRightValue, endLeftValue, endRightValue, this.REVERSE_LINE1,
               startLeftValue, startRightValue, endLeftValue, endRightValue);
           }
         }
       }
     }
-    assertEndTurnAttributesNotEqual(LINE1, null, null, null, null, LINE2, null,
-      null, null, null);
+    assertEndTurnAttributesNotEqual(this.LINE1, null, null, null, null,
+      this.LINE2, null, null, null, null);
   }
 
   @Test
   public void testEndTurnAttributesMerge() {
     for (final String startLeftValue : Arrays.asList("A", "B", "C", "D", null)) {
       for (final String startRightValue : Arrays.asList("B", "C", "D", null,
-        "A")) {
+          "A")) {
         for (final String endLeftValue : Arrays.asList("C", "D", null, "A", "B")) {
           for (final String endRightValue : Arrays.asList("D", null, "A", "B",
-            "C")) {
-            assertEndTurnAttributesMerge(LINE1, startLeftValue,
-              startRightValue, null, null, LINE2, null, null, endLeftValue,
-              endRightValue, MERGED_LINE, startLeftValue, startRightValue,
-              endLeftValue, endRightValue);
-            assertEndTurnAttributesMerge(LINE1, startLeftValue,
-              startRightValue, null, null, REVERSE_LINE2, endLeftValue,
-              endRightValue, null, null, MERGED_LINE, startLeftValue,
+              "C")) {
+            assertEndTurnAttributesMerge(this.LINE1, startLeftValue,
+              startRightValue, null, null, this.LINE2, null, null,
+              endLeftValue, endRightValue, this.MERGED_LINE, startLeftValue,
               startRightValue, endLeftValue, endRightValue);
-            assertEndTurnAttributesMerge(REVERSE_LINE1, null, null,
-              startLeftValue, startRightValue, LINE2, null, null,
-              endLeftValue, endRightValue, REVERSE_MERGED_LINE, endLeftValue,
-              endRightValue, startLeftValue, startRightValue);
-            assertEndTurnAttributesMerge(REVERSE_LINE1, null, null,
-              startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
-              endRightValue, null, null, REVERSE_MERGED_LINE, endLeftValue,
-              endRightValue, startLeftValue, startRightValue);
+            assertEndTurnAttributesMerge(this.LINE1, startLeftValue,
+              startRightValue, null, null, this.REVERSE_LINE2, endLeftValue,
+              endRightValue, null, null, this.MERGED_LINE, startLeftValue,
+              startRightValue, endLeftValue, endRightValue);
+            assertEndTurnAttributesMerge(this.REVERSE_LINE1, null, null,
+              startLeftValue, startRightValue, this.LINE2, null, null,
+              endLeftValue, endRightValue, this.REVERSE_MERGED_LINE,
+              endLeftValue, endRightValue, startLeftValue, startRightValue);
+            assertEndTurnAttributesMerge(this.REVERSE_LINE1, null, null,
+              startLeftValue, startRightValue, this.REVERSE_LINE2,
+              endLeftValue, endRightValue, null, null,
+              this.REVERSE_MERGED_LINE, endLeftValue, endRightValue,
+              startLeftValue, startRightValue);
           }
         }
       }
@@ -1003,65 +1014,70 @@ public class DirectionalAttributesTest {
     final String endLeftValue = "C";
     final String endRightValue = "D";
 
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, null, LINE2, startLeftValue, null, endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, null, LINE2, null, startRightValue, endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, null, REVERSE_LINE2, endLeftValue, null, startLeftValue,
-      startRightValue);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, null, REVERSE_LINE2, null, endRightValue, startLeftValue,
-      startRightValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, LINE2, startLeftValue, null,
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.LINE2, startLeftValue, null,
       endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, LINE2, null, startRightValue,
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.LINE2, null, startRightValue,
       endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.REVERSE_LINE2, endLeftValue, null,
+      startLeftValue, startRightValue);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, null, this.REVERSE_LINE2, null, endRightValue,
+      startLeftValue, startRightValue);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.LINE2, startLeftValue, null,
+      endLeftValue, endRightValue);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.LINE2, null, startRightValue,
+      endLeftValue, endRightValue);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, startLeftValue, startRightValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, null, startRightValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, null, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue,
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, null, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue,
       endRightValue, startLeftValue, null);
 
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      endLeftValue, null, LINE2, null, null, endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, endRightValue, LINE2, null, null, endLeftValue, endRightValue);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      endLeftValue, null, REVERSE_LINE2, endLeftValue, endRightValue, null,
-      null);
-    assertEndTurnAttributesNotCanMerge(LINE1, startLeftValue, startRightValue,
-      null, endRightValue, REVERSE_LINE2, endLeftValue, endRightValue, null,
-      null);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, endLeftValue,
-      endRightValue, startLeftValue, startRightValue, LINE2, null, null, null,
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, endLeftValue, null, this.LINE2, null, null,
+      endLeftValue, endRightValue);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, endRightValue, this.LINE2, null, null,
+      endLeftValue, endRightValue);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, endLeftValue, null, this.REVERSE_LINE2, endLeftValue,
+      endRightValue, null, null);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, startLeftValue,
+      startRightValue, null, endRightValue, this.REVERSE_LINE2, endLeftValue,
+      endRightValue, null, null);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue,
+      endRightValue, startLeftValue, startRightValue, this.LINE2, null, null,
+      null, endLeftValue);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue, null,
+      startLeftValue, startRightValue, this.LINE2, null, null, null,
       endLeftValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, endLeftValue, null,
-      startLeftValue, startRightValue, LINE2, null, null, null, endLeftValue);
-    assertEndTurnAttributesNotCanMerge(REVERSE_LINE1, endLeftValue, null,
-      startLeftValue, startRightValue, REVERSE_LINE2, endLeftValue, null, null,
-      null);
+    assertEndTurnAttributesNotCanMerge(this.REVERSE_LINE1, endLeftValue, null,
+      startLeftValue, startRightValue, this.REVERSE_LINE2, endLeftValue, null,
+      null, null);
 
-    assertEndTurnAttributesNotCanMerge(LINE1, null, null, null, null, LINE1,
-      null, null, null, null);
-    assertEndTurnAttributesNotCanMerge(LINE1, null, null, null, null, LINE3,
-      null, null, null, null);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, null, null, null, null,
+      this.LINE1, null, null, null, null);
+    assertEndTurnAttributesNotCanMerge(this.LINE1, null, null, null, null,
+      this.LINE3, null, null, null, null);
   }
 
   @Test
   public void testEndTurnAttributesReverse() {
     for (final String startLeftValue : Arrays.asList(null, "A", "B", "C", "D")) {
       for (final String startRightValue : Arrays.asList(null, "A", "B", "C",
-        "D")) {
+          "D")) {
         for (final String endLeftValue : Arrays.asList(null, "A", "B", "C", "D")) {
           for (final String endRightValue : Arrays.asList(null, "A", "B", "C",
-            "D")) {
+              "D")) {
             assertEndTurnAttributesReverse(startLeftValue, startRightValue,
               endLeftValue, endRightValue);
           }
@@ -1074,62 +1090,68 @@ public class DirectionalAttributesTest {
   public void testSideAttributesEqual() {
     for (final Boolean leftValue : Arrays.asList(null, false, true)) {
       for (final Boolean endValue : Arrays.asList(null, false, true)) {
-        assertSideAttributesEqual(LINE1, leftValue, endValue, LINE1, leftValue,
-          endValue);
-        assertSideAttributesEqual(LINE1, leftValue, endValue, REVERSE_LINE1,
-          endValue, leftValue);
-        assertSideAttributesEqual(LINE2, leftValue, endValue, LINE2, leftValue,
-          endValue);
-        assertSideAttributesEqual(LINE2, leftValue, endValue, REVERSE_LINE2,
-          endValue, leftValue);
+        assertSideAttributesEqual(this.LINE1, leftValue, endValue, this.LINE1,
+          leftValue, endValue);
+        assertSideAttributesEqual(this.LINE1, leftValue, endValue,
+          this.REVERSE_LINE1, endValue, leftValue);
+        assertSideAttributesEqual(this.LINE2, leftValue, endValue, this.LINE2,
+          leftValue, endValue);
+        assertSideAttributesEqual(this.LINE2, leftValue, endValue,
+          this.REVERSE_LINE2, endValue, leftValue);
       }
     }
 
     for (final Boolean leftValue : Arrays.asList(false, true)) {
       final Boolean endValue = !leftValue;
-      assertSideAttributesNotEqual(LINE1, leftValue, endValue, REVERSE_LINE1,
-        leftValue, endValue);
+      assertSideAttributesNotEqual(this.LINE1, leftValue, endValue,
+        this.REVERSE_LINE1, leftValue, endValue);
     }
-    assertSideAttributesNotEqual(LINE1, null, null, LINE2, null, null);
+    assertSideAttributesNotEqual(this.LINE1, null, null, this.LINE2, null, null);
   }
 
   @Test
   public void testSideAttributesMerge() {
     for (final Boolean leftValue : Arrays.asList(null, false, true)) {
       for (final Boolean endValue : Arrays.asList(null, false, true)) {
-        assertSideAttributesMerge(LINE1, leftValue, endValue, LINE2, leftValue,
-          endValue, MERGED_LINE, leftValue, endValue);
-        assertSideAttributesMerge(LINE2, leftValue, endValue, LINE1, leftValue,
-          endValue, MERGED_LINE, leftValue, endValue);
-        assertSideAttributesMerge(REVERSE_LINE1, endValue, leftValue,
-          REVERSE_LINE2, endValue, leftValue, REVERSE_MERGED_LINE, endValue,
+        assertSideAttributesMerge(this.LINE1, leftValue, endValue, this.LINE2,
+          leftValue, endValue, this.MERGED_LINE, leftValue, endValue);
+        assertSideAttributesMerge(this.LINE2, leftValue, endValue, this.LINE1,
+          leftValue, endValue, this.MERGED_LINE, leftValue, endValue);
+        assertSideAttributesMerge(this.REVERSE_LINE1, endValue, leftValue,
+          this.REVERSE_LINE2, endValue, leftValue, this.REVERSE_MERGED_LINE,
+          endValue, leftValue);
+        assertSideAttributesMerge(this.REVERSE_LINE2, endValue, leftValue,
+          this.REVERSE_LINE1, endValue, leftValue, this.REVERSE_MERGED_LINE,
+          endValue, leftValue);
+        assertSideAttributesMerge(this.LINE1, leftValue, endValue,
+          this.REVERSE_LINE2, endValue, leftValue, this.MERGED_LINE, leftValue,
+          endValue);
+        assertSideAttributesMerge(this.REVERSE_LINE2, endValue, leftValue,
+          this.LINE1, leftValue, endValue, this.MERGED_LINE, leftValue,
+          endValue);
+        assertSideAttributesMerge(this.LINE2, leftValue, endValue,
+          this.REVERSE_LINE1, endValue, leftValue, this.REVERSE_MERGED_LINE,
+          endValue, leftValue);
+        assertSideAttributesMerge(this.REVERSE_LINE1, endValue, leftValue,
+          this.LINE2, leftValue, endValue, this.REVERSE_MERGED_LINE, endValue,
           leftValue);
-        assertSideAttributesMerge(REVERSE_LINE2, endValue, leftValue,
-          REVERSE_LINE1, endValue, leftValue, REVERSE_MERGED_LINE, endValue,
-          leftValue);
-        assertSideAttributesMerge(LINE1, leftValue, endValue, REVERSE_LINE2,
-          endValue, leftValue, MERGED_LINE, leftValue, endValue);
-        assertSideAttributesMerge(REVERSE_LINE2, endValue, leftValue, LINE1,
-          leftValue, endValue, MERGED_LINE, leftValue, endValue);
-        assertSideAttributesMerge(LINE2, leftValue, endValue, REVERSE_LINE1,
-          endValue, leftValue, REVERSE_MERGED_LINE, endValue, leftValue);
-        assertSideAttributesMerge(REVERSE_LINE1, endValue, leftValue, LINE2,
-          leftValue, endValue, REVERSE_MERGED_LINE, endValue, leftValue);
       }
     }
     for (final Boolean leftValue : Arrays.asList(false, true)) {
       final Boolean endValue = !leftValue;
-      assertSideAttributesNotCanMerge(LINE1, leftValue, endValue,
-        REVERSE_LINE2, leftValue, endValue);
-      assertSideAttributesNotCanMerge(REVERSE_LINE2, leftValue, endValue,
-        LINE1, leftValue, endValue);
-      assertSideAttributesNotCanMerge(LINE2, leftValue, endValue,
-        REVERSE_LINE1, leftValue, endValue);
-      assertSideAttributesNotCanMerge(REVERSE_LINE1, leftValue, endValue,
-        LINE2, leftValue, endValue);
+      assertSideAttributesNotCanMerge(this.LINE1, leftValue, endValue,
+        this.REVERSE_LINE2, leftValue, endValue);
+      assertSideAttributesNotCanMerge(this.REVERSE_LINE2, leftValue, endValue,
+        this.LINE1, leftValue, endValue);
+      assertSideAttributesNotCanMerge(this.LINE2, leftValue, endValue,
+        this.REVERSE_LINE1, leftValue, endValue);
+      assertSideAttributesNotCanMerge(this.REVERSE_LINE1, leftValue, endValue,
+        this.LINE2, leftValue, endValue);
     }
-    assertSideAttributesNotCanMerge(LINE1, null, null, LINE3, null, null);
-    assertSideAttributesNotCanMerge(LINE1, null, null, LINE1, null, null);
+    assertSideAttributesNotCanMerge(this.LINE1, null, null, this.LINE3, null,
+      null);
+    assertSideAttributesNotCanMerge(this.LINE1, null, null, this.LINE1, null,
+      null);
   }
 
   @Test

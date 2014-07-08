@@ -2,8 +2,6 @@ package com.revolsys.gis.esri.gdb.file;
 
 import java.io.File;
 
-import javax.xml.namespace.QName;
-
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -19,8 +17,8 @@ public class FeatureDatasetTest {
 
   @Test
   public void testCreateGeodatabase() throws Exception {
-    final String path = new QName("test", "Point");
-    DataObjectMetaDataImpl newMetaData = new DataObjectMetaDataImpl(typePath);
+    final String path = "/test/Point";
+    final DataObjectMetaDataImpl newMetaData = new DataObjectMetaDataImpl(path);
     newMetaData.addAttribute("id", DataTypes.INT, false);
     newMetaData.addAttribute("name", DataTypes.STRING, 255, false);
     newMetaData.addAttribute("geometry", DataTypes.POINT, true);
@@ -46,7 +44,7 @@ public class FeatureDatasetTest {
       object.setValue("name", "Paul Austin");
       object.setGeometryValue(geometryFactory.createPoint(-122, 150));
       dataStore.insert(object);
-      for (DataObject object2 : dataStore.query(typePath)) {
+      for (final DataObject object2 : dataStore.query(path)) {
         System.out.println(object2);
       }
       dataStore.close();
@@ -54,8 +52,8 @@ public class FeatureDatasetTest {
       dataStore = FileGdbDataObjectStoreFactory.create(new File(datasetName));
       dataStore.initialize();
       dataStore.setDefaultSchema("test");
-      DataObjectStoreSchema schema = dataStore.getSchema("test");
-      for (DataObjectMetaData metaData2 : schema.getTypes()) {
+      final DataObjectStoreSchema schema = dataStore.getSchema("test");
+      for (final DataObjectMetaData metaData2 : schema.getTypes()) {
         System.out.println(metaData2);
       }
     } finally {

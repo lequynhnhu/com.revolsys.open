@@ -5,13 +5,13 @@
  * $Revision:265 $
 
  * Copyright 2004-2005 Revolution Systems Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,6 @@ import org.springframework.core.io.Resource;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.CoordinateSystems;
 import com.revolsys.gis.cs.esri.EsriCsWktWriter;
-import com.revolsys.gis.cs.projection.GeometryProjectionUtil;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
@@ -45,6 +44,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.xbase.FieldDefinition;
 import com.revolsys.io.xbase.XbaseDataObjectWriter;
+import com.revolsys.jts.geom.BoundingBox;
 import com.revolsys.jts.geom.Envelope;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
@@ -57,7 +57,7 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
 
   private static final ShapefileGeometryUtil SHP_WRITER = ShapefileGeometryUtil.SHP_INSTANCE;
 
-  private final Envelope envelope = new Envelope();
+  private BoundingBox envelope = new Envelope();
 
   private GeometryFactory geometryFactory;
 
@@ -75,15 +75,14 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
 
   private final Resource resource;
 
-  private final double zMax = 0; // Double.MIN_VALUE;
-
-  private final double zMin = 0; // Double.MAX_VALUE;
-
   private int shapeType = ShapefileConstants.NULL_SHAPE;
 
-  public ShapefileDataObjectWriter(final DataObjectMetaData metaData,
+  private DataType geometryDataType;
+
+  public ShapefileDataObjectWriter(final DataObjectMetaData DataObjectMetaData,
     final Resource resource) {
-    super(metaData, SpringUtil.getResourceWithExtension(resource, "dbf"));
+    super(DataObjectMetaData, SpringUtil.getResourceWithExtension(resource,
+      "dbf"));
     this.resource = resource;
   }
 
@@ -91,10 +90,10 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
   protected int addDbaseField(final String name, final DataType dataType,
     final Class<?> typeJavaClass, final int length, final int scale) {
     if (Geometry.class.isAssignableFrom(typeJavaClass)) {
-      if (hasGeometry) {
+      if (this.hasGeometry) {
         return super.addDbaseField(name, DataTypes.STRING, String.class, 254, 0);
       } else {
-        hasGeometry = true;
+        this.hasGeometry = true;
         addFieldDefinition(name, FieldDefinition.OBJECT_TYPE, 0);
         return 0;
       }
@@ -107,32 +106,26 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
   public void close() {
     super.close();
     try {
-      updateHeader(out);
-      if (indexOut != null) {
-        updateHeader(indexOut);
+      updateHeader(this.out);
+      if (this.indexOut != null) {
+        updateHeader(this.indexOut);
       }
     } catch (final IOException e) {
       LOG.error(e.getMessage(), e);
     } finally {
-      out = null;
-      indexOut = null;
+      this.out = null;
+      this.indexOut = null;
     }
   }
 
-  private void createGeometryWriter(final Geometry geometry) {
-    geometryWriteMethod = ShapefileGeometryUtil.getWriteMethod(geometry);
-    shapeType = ShapefileGeometryUtil.getShapeType(geometry);
-  }
-
-  private void createPrjFile(
-    final com.revolsys.jts.geom.GeometryFactory geometryFactory)
-    throws IOException {
+  private void createPrjFile(final GeometryFactory geometryFactory)
+      throws IOException {
     if (geometryFactory != null) {
       final CoordinateSystem coordinateSystem = geometryFactory.getCoordinateSystem();
       if (coordinateSystem != null) {
         final int srid = coordinateSystem.getId();
         final Resource prjResource = SpringUtil.getResourceWithExtension(
-          resource, "prj");
+          this.resource, "prj");
         if (!(prjResource instanceof NonExistingResource)) {
           final OutputStream out = SpringUtil.getOutputStream(prjResource);
           final PrintWriter writer = new PrintWriter(
@@ -146,49 +139,75 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
     }
   }
 
+  private void doubleNotNaN(final ResourceEndianOutput out, final double value)
+      throws IOException {
+    if (MathUtil.isNanOrInfinite(value)) {
+      out.writeLEDouble(0);
+    } else {
+      out.writeLEDouble(value);
+    }
+  }
+
   @Override
   protected void init() throws IOException {
     super.init();
-    final DataObjectMetaDataImpl metaData = (DataObjectMetaDataImpl)getMetaData();
-    if (metaData != null) {
-      geometryPropertyName = metaData.getGeometryAttributeName();
-      if (geometryPropertyName != null) {
+    final DataObjectMetaDataImpl DataObjectMetaData = (DataObjectMetaDataImpl)getMetaData();
+    if (DataObjectMetaData != null) {
+      this.geometryPropertyName = DataObjectMetaData.getGeometryAttributeName();
+      if (this.geometryPropertyName != null) {
 
-        this.out = new ResourceEndianOutput(resource);
+        this.out = new ResourceEndianOutput(this.resource);
         writeHeader(this.out);
 
-        if (!hasField(geometryPropertyName)) {
-          addFieldDefinition(geometryPropertyName, FieldDefinition.OBJECT_TYPE,
-            0);
+        if (!hasField(this.geometryPropertyName)) {
+          addFieldDefinition(this.geometryPropertyName,
+            FieldDefinition.OBJECT_TYPE, 0);
         }
 
         final Resource indexResource = SpringUtil.getResourceWithExtension(
-          resource, "shx");
+          this.resource, "shx");
         if (!(indexResource instanceof NonExistingResource)) {
-          indexOut = new ResourceEndianOutput(indexResource);
-          writeHeader(indexOut);
+          this.indexOut = new ResourceEndianOutput(indexResource);
+          writeHeader(this.indexOut);
         }
-        geometryFactory = getProperty(IoConstants.GEOMETRY_FACTORY);
+        this.geometryFactory = getProperty(IoConstants.GEOMETRY_FACTORY);
+        final Object geometryType = getProperty(IoConstants.GEOMETRY_TYPE);
+        if (geometryType != null) {
+          this.geometryDataType = DataTypes.getType(geometryType.toString());
+        }
       }
     }
   }
 
   @Override
   protected void preFirstWrite(final DataObject object) throws IOException {
-    if (geometryPropertyName != null) {
-      if (geometryFactory == null) {
-        final Geometry geometry = object.getGeometryValue();
-        if (geometry != null) {
-          geometryFactory = GeometryFactory.getFactory(geometry);
+    if (this.geometryPropertyName != null) {
+      final Geometry geometry = object.getGeometryValue();
+      if (geometry != null) {
+        if (this.geometryFactory == null) {
+          this.geometryFactory = geometry.getGeometryFactory();
         }
+        if (this.geometryDataType == null) {
+          this.geometryDataType = object.getMetaData()
+              .getGeometryAttribute()
+              .getType();
+          if (this.geometryDataType.equals(DataTypes.GEOMETRY)) {
+            final String geometryType = geometry.getGeometryType();
+            this.geometryDataType = DataTypes.getType(geometryType);
+          }
+        }
+        this.shapeType = ShapefileGeometryUtil.SHP_INSTANCE.getShapeType(
+          this.geometryFactory, this.geometryDataType);
+        this.geometryWriteMethod = ShapefileGeometryUtil.getWriteMethod(
+          this.geometryFactory, this.geometryDataType);
       }
-      createPrjFile(geometryFactory);
+      createPrjFile(this.geometryFactory);
     }
   }
 
   @Override
   public String toString() {
-    return "ShapefileWriter(" + resource + ")";
+    return "ShapefileWriter(" + this.resource + ")";
   }
 
   private void updateHeader(final ResourceEndianOutput out) throws IOException {
@@ -198,27 +217,15 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
       final int sizeInShorts = (int)(out.length() / 2);
       out.writeInt(sizeInShorts);
       out.seek(32);
-      out.writeLEInt(shapeType);
-      out.writeLEDouble(envelope.getMinX());
-      out.writeLEDouble(envelope.getMinY());
-      out.writeLEDouble(envelope.getMaxX());
-      out.writeLEDouble(envelope.getMaxY());
-      switch (shapeType) {
-        case ShapefileConstants.POINT_ZM_SHAPE:
-        case ShapefileConstants.MULTI_POINT_ZM_SHAPE:
-        case ShapefileConstants.POLYLINE_ZM_SHAPE:
-        case ShapefileConstants.POLYGON_ZM_SHAPE:
-          out.writeLEDouble(zMin);
-          out.writeLEDouble(zMax);
-        break;
-
-        default:
-          out.writeLEDouble(0.0);
-          out.writeLEDouble(0.0);
-        break;
-      }
-      out.writeLEDouble(0.0);
-      out.writeLEDouble(0.0);
+      out.writeLEInt(this.shapeType);
+      doubleNotNaN(out, this.envelope.getMinX());
+      doubleNotNaN(out, this.envelope.getMinY());
+      doubleNotNaN(out, this.envelope.getMaxX());
+      doubleNotNaN(out, this.envelope.getMaxY());
+      doubleNotNaN(out, this.envelope.getMin(2));
+      doubleNotNaN(out, this.envelope.getMax(2));
+      doubleNotNaN(out, this.envelope.getMin(3));
+      doubleNotNaN(out, this.envelope.getMax(3));
       out.close();
     }
   }
@@ -226,28 +233,26 @@ public class ShapefileDataObjectWriter extends XbaseDataObjectWriter {
   @Override
   protected boolean writeField(final DataObject object,
     final FieldDefinition field) throws IOException {
-    if (field.getFullName().equals(geometryPropertyName)) {
-      final long recordIndex = out.getFilePointer();
+    if (field.getFullName().equals(this.geometryPropertyName)) {
+      final long DataObjectIndex = this.out.getFilePointer();
       Geometry geometry = object.getGeometryValue();
-      geometry = GeometryProjectionUtil.performCopy(geometry, geometryFactory);
-      envelope.expandToInclude(geometry.getBoundingBox());
+      if (geometry != null) {
+        geometry = geometry.convert(this.geometryFactory);
+      }
+      this.envelope = this.envelope.expandToInclude(geometry.getBoundingBox());
+      this.out.writeInt(this.recordNumber++);
       if (geometry == null || geometry.isEmpty()) {
-        writeNull(out);
+        writeNull(this.out);
       } else {
-        if (geometryWriteMethod == null) {
-          createGeometryWriter(geometry);
-        }
-        out.writeInt(recordNumber);
-        SHP_WRITER.write(geometryWriteMethod, out, geometry);
-
-        recordNumber++;
-        if (indexOut != null) {
-          final long recordLength = out.getFilePointer() - recordIndex;
-          final int offsetShort = (int)(recordIndex / MathUtil.BYTES_IN_SHORT);
-          indexOut.writeInt(offsetShort);
-          final int lengthShort = (int)(recordLength / MathUtil.BYTES_IN_SHORT) - 4;
-          indexOut.writeInt(lengthShort);
-        }
+        SHP_WRITER.write(this.geometryWriteMethod, this.out, geometry);
+      }
+      if (this.indexOut != null) {
+        final long DataObjectLength = this.out.getFilePointer()
+          - DataObjectIndex;
+        final int offsetShort = (int)(DataObjectIndex / MathUtil.BYTES_IN_SHORT);
+        this.indexOut.writeInt(offsetShort);
+        final int lengthShort = (int)(DataObjectLength / MathUtil.BYTES_IN_SHORT) - 4;
+        this.indexOut.writeInt(lengthShort);
       }
       return true;
     } else {

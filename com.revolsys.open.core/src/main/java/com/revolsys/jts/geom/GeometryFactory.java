@@ -89,15 +89,7 @@ import com.revolsys.util.CollectionUtil;
  * @version 1.7
  */
 public class GeometryFactory implements Serializable,
-  CoordinatesPrecisionModel, MapSerializer {
-  public static final MapObjectFactory FACTORY = new InvokeMethodMapObjectFactory(
-    "geometryFactory", "Geometry Factory", GeometryFactory.class, "create");
-
-  /** The cached geometry factories. */
-  private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
-
-  private static final long serialVersionUID = 4328651897279304108L;
-
+CoordinatesPrecisionModel, MapSerializer {
   public static void clear() {
     factories.clear();
   }
@@ -115,7 +107,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and
    * a floating precision model.
    * </p>
-   * 
+   *
    * @return The geometry factory.
    */
   public static GeometryFactory getFactory() {
@@ -142,7 +134,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and
    * a fixed x, y & floating z precision models.
    * </p>
-   * 
+   *
    * @param scaleXY The scale factor used to round the x, y coordinates. The
    *          precision is 1 / scaleXy. A scale factor of 1000 will give a
    *          precision of 1 / 1000 = 1mm for projected coordinate systems using
@@ -166,7 +158,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with the coordinate system, 3D axis (x, y &amp; z)
    * and a floating precision models.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @return The geometry factory.
@@ -180,7 +172,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with the coordinate system, 2D axis (x &amp; y) and a
    * fixed x, y precision model.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @param scaleXY The scale factor used to round the x, y coordinates. The
@@ -198,7 +190,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and
    * a fixed x, y &amp; floating z precision models.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @param scaleXY The scale factor used to round the x, y coordinates. The
@@ -221,7 +213,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with the coordinate system, number of axis and a
    * floating precision model.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @param axisCount The number of coordinate axis. 2 for 2D x &amp; y
@@ -237,7 +229,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with the coordinate system, number of axis and a
    * fixed x, y &amp; fixed z precision models.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @param axisCount The number of coordinate axis. 2 for 2D x &amp; y
@@ -270,7 +262,7 @@ public class GeometryFactory implements Serializable,
    * Get a GeometryFactory with the coordinate system, 3D axis (x, y &amp; z)
    * and a floating precision models.
    * </p>
-   * 
+   *
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG
    *          coordinate system id</a>.
    * @return The geometry factory.
@@ -311,6 +303,14 @@ public class GeometryFactory implements Serializable,
   public static GeometryFactory worldMercator() {
     return getFactory(3857);
   }
+
+  public static final MapObjectFactory FACTORY = new InvokeMethodMapObjectFactory(
+    "geometryFactory", "Geometry Factory", GeometryFactory.class, "create");
+
+  /** The cached geometry factories. */
+  private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
+
+  private static final long serialVersionUID = 4328651897279304108L;
 
   private final PrecisionModel precisionModel;
 
@@ -429,7 +429,18 @@ public class GeometryFactory implements Serializable,
       return multiPolygon(geometries);
     } else {
       throw new IllegalArgumentException("Unknown geometry type "
-        + collectionDataType);
+          + collectionDataType);
+    }
+  }
+
+  public GeometryFactory convertAxisCount(final int axisCount) {
+    if (axisCount == getAxisCount()) {
+      return this;
+    } else {
+      final int srid = getSrid();
+      final double scaleXY = getScaleXY();
+      final double scaleZ = getScaleZ();
+      return GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
     }
   }
 
@@ -505,7 +516,7 @@ public class GeometryFactory implements Serializable,
    * <p>
    * Create a new geometry of the requested target geometry class.
    * <p>
-   * 
+   *
    * @param targetClass
    * @param geometry
    * @return
@@ -577,7 +588,7 @@ public class GeometryFactory implements Serializable,
    * geometries. If there are no geometries an empty {@link GeometryCollection} will be returned.
    * If there is one geometry that single geometry will be returned. Otherwise the result
    * will be a subclass of {@link GeometryCollection}.
-   * 
+   *
    * @author Paul Austin <paul.austin@revolsys.com>
    * @param geometries
    * @return
@@ -618,15 +629,15 @@ public class GeometryFactory implements Serializable,
    * of the input geometry.
    * <p>
    * This is a convenient way to change the <tt>CoordinatesList</tt>
-   * used to represent a geometry, or to change the 
+   * used to represent a geometry, or to change the
    * factory used for a geometry.
    * <p>
    * {@link Geometry#clone()} can also be used to make a deep copy,
    * but it does not allow changing the CoordinatesList type.
-   * 
+   *
    * @return a deep copy of the input geometry, using the CoordinatesList type of this factory
-   * 
-   * @see Geometry#clone() 
+   *
+   * @see Geometry#clone()
    */
   public Geometry geometry(final Geometry geometry) {
     if (geometry == null) {
@@ -636,7 +647,7 @@ public class GeometryFactory implements Serializable,
       final int geometrySrid = geometry.getSrid();
       if (srid == 0 && geometrySrid != 0) {
         final GeometryFactory geometryFactory = GeometryFactory.getFactory(
-          geometrySrid, axisCount, getScaleXY(), getScaleZ());
+          geometrySrid, this.axisCount, getScaleXY(), getScaleZ());
         return geometryFactory.geometry(geometry);
       } else if (srid != 0 && geometrySrid != 0 && geometrySrid != srid) {
         if (geometry instanceof MultiPoint) {
@@ -694,13 +705,13 @@ public class GeometryFactory implements Serializable,
 
   @SuppressWarnings("unchecked")
   public <T extends Geometry> T geometry(final String wkt) {
-    return (T)parser.parseGeometry(wkt);
+    return (T)this.parser.parseGeometry(wkt);
   }
 
   @SuppressWarnings("unchecked")
   public <T extends Geometry> T geometry(final String wkt,
     final boolean useAxisCountFromGeometryFactory) {
-    return (T)parser.parseGeometry(wkt, useAxisCountFromGeometryFactory);
+    return (T)this.parser.parseGeometry(wkt, useAxisCountFromGeometryFactory);
   }
 
   public GeometryCollection geometryCollection() {
@@ -743,7 +754,7 @@ public class GeometryFactory implements Serializable,
   }
 
   public int getAxisCount() {
-    return axisCount;
+    return this.axisCount;
   }
 
   public Coordinates getCoordinates(final Point point) {
@@ -752,13 +763,13 @@ public class GeometryFactory implements Serializable,
   }
 
   public CoordinateSequenceFactory getCoordinateSequenceFactory() {
-    return coordinateSequenceFactory;
+    return this.coordinateSequenceFactory;
   }
 
   /**
    * <p>Get the {@link CoordinatesOperation} to convert between this factory's and the other factory's
    * {@link CoordinateSystem}.</p>
-   * 
+   *
    * @author Paul Austin <paul.austin@revolsys.com>
    * @param geometryFactory The geometry factory to convert to.
    * @return The coordinates operation or null if no conversion is available.
@@ -772,18 +783,18 @@ public class GeometryFactory implements Serializable,
   }
 
   public CoordinatesPrecisionModel getCoordinatesPrecisionModel() {
-    return coordinatesPrecisionModel;
+    return this.coordinatesPrecisionModel;
   }
 
   public CoordinateSystem getCoordinateSystem() {
-    return coordinateSystem;
+    return this.coordinateSystem;
   }
 
   public GeometryFactory getGeographicGeometryFactory() {
-    if (coordinateSystem instanceof GeographicCoordinateSystem) {
+    if (this.coordinateSystem instanceof GeographicCoordinateSystem) {
       return this;
-    } else if (coordinateSystem instanceof ProjectedCoordinateSystem) {
-      final ProjectedCoordinateSystem projectedCs = (ProjectedCoordinateSystem)coordinateSystem;
+    } else if (this.coordinateSystem instanceof ProjectedCoordinateSystem) {
+      final ProjectedCoordinateSystem projectedCs = (ProjectedCoordinateSystem)this.coordinateSystem;
       final GeographicCoordinateSystem geographicCs = projectedCs.getGeographicCoordinateSystem();
       final int srid = geographicCs.getId();
       return getFactory(srid, getAxisCount(), 0, 0);
@@ -880,27 +891,27 @@ public class GeometryFactory implements Serializable,
 
   @Override
   public Coordinates getPreciseCoordinates(final Coordinates point) {
-    return coordinatesPrecisionModel.getPreciseCoordinates(point);
+    return this.coordinatesPrecisionModel.getPreciseCoordinates(point);
   }
 
   /**
    * Returns the PrecisionModel that Geometries created by this factory
    * will be associated with.
-   * 
+   *
    * @return the PrecisionModel for this factory
    */
   public PrecisionModel getPrecisionModel() {
-    return precisionModel;
+    return this.precisionModel;
   }
 
   @Override
   public double getResolutionXy() {
-    return coordinatesPrecisionModel.getResolutionXy();
+    return this.coordinatesPrecisionModel.getResolutionXy();
   }
 
   @Override
   public double getResolutionZ() {
-    return coordinatesPrecisionModel.getResolutionZ();
+    return this.coordinatesPrecisionModel.getResolutionZ();
   }
 
   @Override
@@ -917,24 +928,24 @@ public class GeometryFactory implements Serializable,
 
   /**
    * Gets the srid value defined for this factory.
-   * 
+   *
    * @return the factory srid value
    */
   public int getSrid() {
-    return srid;
+    return this.srid;
   }
 
   public boolean hasM() {
-    return axisCount > 3;
+    return this.axisCount > 3;
   }
 
   public boolean hasZ() {
-    return axisCount > 2;
+    return this.axisCount > 2;
   }
 
   @Override
   public boolean isFloating() {
-    return coordinatesPrecisionModel.isFloating();
+    return this.coordinatesPrecisionModel.isFloating();
   }
 
   public LinearRing linearRing() {
@@ -952,8 +963,8 @@ public class GeometryFactory implements Serializable,
 
   /**
    * Creates a {@link LinearRing} using the given {@link Coordinates}s.
-   * A null or empty array creates an empty LinearRing. 
-   * The points must form a closed and simple linestring. 
+   * A null or empty array creates an empty LinearRing.
+   * The points must form a closed and simple linestring.
    * @param coordinates an array without null elements, or an empty array, or null
    * @return the created LinearRing
    * @throws IllegalArgumentException if the ring is not closed, or has too few points
@@ -965,10 +976,10 @@ public class GeometryFactory implements Serializable,
   }
 
   /**
-   * Creates a {@link LinearRing} using the given {@link CoordinatesList}. 
-   * A null or empty array creates an empty LinearRing. 
-   * The points must form a closed and simple linestring. 
-   * 
+   * Creates a {@link LinearRing} using the given {@link CoordinatesList}.
+   * A null or empty array creates an empty LinearRing.
+   * The points must form a closed and simple linestring.
+   *
    * @param coordinates a CoordinatesList (possibly empty), or null
    * @return the created LinearRing
    * @throws IllegalArgumentException if the ring is not closed, or has too few points
@@ -1009,8 +1020,8 @@ public class GeometryFactory implements Serializable,
 
   /**
    * Creates a LineString using the given CoordinatesList.
-   * A null or empty CoordinatesList creates an empty LineString. 
-   * 
+   * A null or empty CoordinatesList creates an empty LineString.
+   *
    * @param coordinates a CoordinatesList (possibly empty), or null
    */
   public LineString lineString(final CoordinatesList points) {
@@ -1031,17 +1042,17 @@ public class GeometryFactory implements Serializable,
 
   @Override
   public void makePrecise(final Coordinates point) {
-    coordinatesPrecisionModel.makePrecise(point);
+    this.coordinatesPrecisionModel.makePrecise(point);
   }
 
   public void makePrecise(final Coordinates... points) {
     for (final Coordinates point : points) {
-      coordinatesPrecisionModel.makePrecise(point);
+      this.coordinatesPrecisionModel.makePrecise(point);
     }
   }
 
   public void makePrecise(final CoordinatesList points) {
-    points.makePrecise(coordinatesPrecisionModel);
+    points.makePrecise(this.coordinatesPrecisionModel);
   }
 
   public void makePrecise(final double[] values) {
@@ -1050,7 +1061,7 @@ public class GeometryFactory implements Serializable,
 
   public void makePrecise(final double[] values, final double[] valuesPrecise) {
     for (int i = 0; i < valuesPrecise.length; i++) {
-      final int axisIndex = i % axisCount;
+      final int axisIndex = i % this.axisCount;
       valuesPrecise[i] = makePrecise(axisIndex, values[i]);
     }
   }
@@ -1067,23 +1078,23 @@ public class GeometryFactory implements Serializable,
 
   @Override
   public void makePrecise(final int axisCount, final double... coordinates) {
-    coordinatesPrecisionModel.makePrecise(axisCount, coordinates);
+    this.coordinatesPrecisionModel.makePrecise(axisCount, coordinates);
   }
 
   public void makePrecise(final Iterable<Coordinates> points) {
     for (final Coordinates point : points) {
-      coordinatesPrecisionModel.makePrecise(point);
+      this.coordinatesPrecisionModel.makePrecise(point);
     }
   }
 
   @Override
   public double makeXyPrecise(final double value) {
-    return coordinatesPrecisionModel.makeXyPrecise(value);
+    return this.coordinatesPrecisionModel.makeXyPrecise(value);
   }
 
   @Override
   public double makeZPrecise(final double value) {
-    return coordinatesPrecisionModel.makeZPrecise(value);
+    return this.coordinatesPrecisionModel.makeZPrecise(value);
   }
 
   public MultiLineString multiLineString(final Collection<?> lines) {
@@ -1094,7 +1105,7 @@ public class GeometryFactory implements Serializable,
   /**
    * Creates a MultiLineString using the given LineStrings; a null or empty
    * array will create an empty MultiLineString.
-   * 
+   *
    * @param lineStrings LineStrings, each of which may be empty but not null
    * @return the created MultiLineString
    */
@@ -1129,7 +1140,7 @@ public class GeometryFactory implements Serializable,
   }
 
   /**
-   * Creates a {@link MultiPoint} using the 
+   * Creates a {@link MultiPoint} using the
    * points in the given {@link CoordinatesList}.
    * A <code>null</code> or empty CoordinatesList creates an empty MultiPoint.
    *
@@ -1204,7 +1215,7 @@ public class GeometryFactory implements Serializable,
    * point will be returned. The result point will have the same  {@link #getAxisCount()} from this
    * factory. Additional axis in the point will be ignored. If the point has a smaller
    * {@link Point#getAxisCount()} then {@link Double#NaN} will be used for that axis.</p>
-   * 
+   *
    * @param point The coordinates to create the point from.
    * @return The point.
    */
@@ -1219,7 +1230,7 @@ public class GeometryFactory implements Serializable,
   /**
    * Creates a Point using the given CoordinatesList; a null or empty
    * CoordinatesList will create an empty Point.
-   * 
+   *
    * @param points a CoordinatesList (possibly empty), or null
    * @return the created Point
    */
@@ -1240,7 +1251,7 @@ public class GeometryFactory implements Serializable,
         return point(coordinates);
       } else {
         throw new IllegalArgumentException("Point can only have 1 vertex not "
-          + size);
+            + size);
       }
     }
   }
@@ -1251,7 +1262,7 @@ public class GeometryFactory implements Serializable,
    * The result point will have the same  {@link #getAxisCount()} from this factory.
    * Additional coordinates in the point will be ignored. If the point length is &lt;
    * {@link #getAxisCount()} then {@link Double#NaN} will be used for that axis.</p>
-   * 
+   *
    * @param point The coordinates to create the point from.
    * @return The point.
    */
@@ -1273,7 +1284,7 @@ public class GeometryFactory implements Serializable,
    *   <li>Instances of {@link double[]} using {@link #point(double[])}</li>
    *   <li>Instances of any other class throws {@link IllegalArgumentException}.<li>
    * </ul>
-   * 
+   *
    * @param point The coordinates to create the point from.
    * @return The point.
    * @throws IllegalArgumentException If the object is not an instance of a supported class.
@@ -1292,7 +1303,7 @@ public class GeometryFactory implements Serializable,
       return point((CoordinatesList)object);
     } else {
       throw new IllegalArgumentException("Cannot create a point from "
-        + object.getClass());
+          + object.getClass());
     }
   }
 
@@ -1346,7 +1357,7 @@ public class GeometryFactory implements Serializable,
 
   /**
    * Project the geometry if it is in a different coordinate system
-   * 
+   *
    * @param geometry
    * @return
    */
@@ -1365,7 +1376,7 @@ public class GeometryFactory implements Serializable,
     if (scaleXY > 0) {
       map.put("scaleXy", scaleXY);
     }
-    if (axisCount > 2) {
+    if (this.axisCount > 2) {
       final double scaleZ = getScaleZ();
       if (scaleZ > 0) {
         map.put("scaleZ", scaleZ);
@@ -1378,15 +1389,15 @@ public class GeometryFactory implements Serializable,
   public String toString() {
     final StringBuffer string = new StringBuffer();
     final int srid = getSrid();
-    if (coordinateSystem != null) {
-      string.append(coordinateSystem.getName());
+    if (this.coordinateSystem != null) {
+      string.append(this.coordinateSystem.getName());
       string.append(", ");
     }
     string.append("srid=");
     string.append(srid);
     string.append(", axisCount=");
-    string.append(axisCount);
-    final double scaleXY = coordinatesPrecisionModel.getScaleXY();
+    string.append(this.axisCount);
+    final double scaleXY = this.coordinatesPrecisionModel.getScaleXY();
     string.append(", scaleXy=");
     if (scaleXY <= 0) {
       string.append("floating");
@@ -1394,7 +1405,7 @@ public class GeometryFactory implements Serializable,
       string.append(scaleXY);
     }
     if (hasZ()) {
-      final double scaleZ = coordinatesPrecisionModel.getScaleZ();
+      final double scaleZ = this.coordinatesPrecisionModel.getScaleZ();
       string.append(", scaleZ=");
       if (scaleZ <= 0) {
         string.append("floating");

@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.cs.projection.ProjectionFactory;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObject;
@@ -27,6 +26,7 @@ import com.revolsys.io.esri.gdb.xml.model.SpatialReference;
 import com.revolsys.io.esri.gdb.xml.model.enums.GeometryType;
 import com.revolsys.io.shp.ShapefileGeometryUtil;
 import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryFactory;
 
 public class GeometryAttribute extends AbstractFileGdbAttribute {
 
@@ -55,7 +55,7 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
   public GeometryAttribute(final Field field) {
     super(field.getName(), DataTypes.GEOMETRY,
       BooleanStringConverter.getBoolean(field.getRequired())
-        || !field.isIsNullable());
+      || !field.isIsNullable());
     final GeometryDef geometryDef = field.getGeometryDef();
     if (geometryDef == null) {
       throw new IllegalArgumentException(
@@ -65,16 +65,16 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
       final SpatialReference spatialReference = geometryDef.getSpatialReference();
       if (spatialReference == null) {
         throw new IllegalArgumentException(
-          "Field definition does not include a spatial reference");
+            "Field definition does not include a spatial reference");
       } else {
         final GeometryType geometryType = geometryDef.getGeometryType();
         final DataType dataType = GEOMETRY_TYPE_DATA_TYPE_MAP.get(geometryType);
         setType(dataType);
         this.geometryFactory = spatialReference.getGeometryFactory();
-        if (geometryFactory == null) {
+        if (this.geometryFactory == null) {
           throw new IllegalArgumentException(
             "Field definition does not include a valid coordinate system "
-              + spatialReference.getLatestWKID());
+                + spatialReference.getLatestWKID());
         }
 
         int axisCount = 2;
@@ -86,23 +86,23 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
         if (hasM) {
           axisCount = 4;
         }
-        if (axisCount != geometryFactory.getAxisCount()) {
-          final int srid = geometryFactory.getSrid();
-          final double scaleXY = geometryFactory.getScaleXY();
-          final double scaleZ = geometryFactory.getScaleZ();
-          geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-            scaleZ);
+        if (axisCount != this.geometryFactory.getAxisCount()) {
+          final int srid = this.geometryFactory.getSrid();
+          final double scaleXY = this.geometryFactory.getScaleXY();
+          final double scaleZ = this.geometryFactory.getScaleZ();
+          this.geometryFactory = GeometryFactory.getFactory(srid, axisCount,
+            scaleXY, scaleZ);
         }
-        setProperty(AttributeProperties.GEOMETRY_FACTORY, geometryFactory);
+        setProperty(AttributeProperties.GEOMETRY_FACTORY, this.geometryFactory);
 
         final String geometryTypeKey = dataType.toString() + hasZ + hasM;
-        readMethod = ShapefileGeometryUtil.getReadMethod(geometryTypeKey);
-        if (readMethod == null) {
+        this.readMethod = ShapefileGeometryUtil.getReadMethod(geometryTypeKey);
+        if (this.readMethod == null) {
           throw new IllegalArgumentException(
             "No read method for geometry type " + geometryTypeKey);
         }
-        writeMethod = ShapefileGeometryUtil.getWriteMethod(geometryTypeKey);
-        if (writeMethod == null) {
+        this.writeMethod = ShapefileGeometryUtil.getWriteMethod(geometryTypeKey);
+        if (this.writeMethod == null) {
           throw new IllegalArgumentException(
             "No write method for geometry type " + geometryTypeKey);
         }
@@ -119,7 +119,7 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
   @Override
   public Object getValue(final Row row) {
     final String name = getName();
-    CapiFileGdbDataObjectStore dataStore = getDataStore();
+    final CapiFileGdbDataObjectStore dataStore = getDataStore();
     if (dataStore.isNull(row, name)) {
       return null;
     } else {
@@ -134,8 +134,8 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
         if (type == 0) {
           return null;
         } else {
-          final Geometry geometry = SHP_UTIL.read(readMethod, geometryFactory,
-            in);
+          final Geometry geometry = SHP_UTIL.read(this.readMethod,
+            this.geometryFactory, in, -1);
           return geometry;
         }
       } catch (final IOException e) {
@@ -161,10 +161,10 @@ public class GeometryAttribute extends AbstractFileGdbAttribute {
     } else if (value instanceof Geometry) {
       final Geometry geometry = (Geometry)value;
       final Geometry projectedGeometry = ProjectionFactory.convert(geometry,
-        geometryFactory);
+        this.geometryFactory);
       final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
       final EndianOutput out = new EndianOutputStream(byteOut);
-      SHP_UTIL.write(writeMethod, out, projectedGeometry);
+      SHP_UTIL.write(this.writeMethod, out, projectedGeometry);
       final byte[] bytes = byteOut.toByteArray();
       synchronized (getDataStore()) {
         row.setGeometry(bytes);

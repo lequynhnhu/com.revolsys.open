@@ -3,7 +3,7 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>GEOMARK-SNAPSHOT</version>
+    <version>2014.07.11-GEOMARK1</version>
   </parent>
   <artifactId>com.revolsys.open.gis.google.fusiontables</artifactId>
   <name>RS Google Fusion Tables</name>

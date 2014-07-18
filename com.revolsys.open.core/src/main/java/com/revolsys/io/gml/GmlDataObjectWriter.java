@@ -4,6 +4,7 @@ import java.io.Writer;
 
 import javax.xml.namespace.QName;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.cs.BoundingBox;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.GeometryFactory;
@@ -18,9 +19,10 @@ import com.revolsys.io.PathUtil;
 import com.revolsys.io.gml.type.GmlFieldType;
 import com.revolsys.io.gml.type.GmlFieldTypeRegistry;
 import com.revolsys.io.xml.XmlWriter;
+import com.revolsys.util.Property;
 
 public class GmlDataObjectWriter extends AbstractWriter<DataObject> implements
-  GmlConstants {
+GmlConstants {
   public static final void srsName(final XmlWriter out,
     final GeometryFactory geometryFactory) {
     final CoordinateSystem coordinateSystem = geometryFactory.getCoordinateSystem();
@@ -42,73 +44,81 @@ public class GmlDataObjectWriter extends AbstractWriter<DataObject> implements
 
   private final String namespaceUri;
 
+  private boolean writeNulls;
+
   public GmlDataObjectWriter(final DataObjectMetaData metaData, final Writer out) {
     this.metaData = metaData;
     this.out = new XmlWriter(out);
-    qualifiedName = metaData.getProperty(DataObjectMetaDataProperties.QUALIFIED_NAME);
-    if (qualifiedName == null) {
-      qualifiedName = new QName(metaData.getTypeName());
+    this.qualifiedName = metaData.getProperty(DataObjectMetaDataProperties.QUALIFIED_NAME);
+    if (this.qualifiedName == null) {
+      this.qualifiedName = new QName(metaData.getTypeName());
     }
-    namespaceUri = qualifiedName.getNamespaceURI();
-    this.out.setPrefix(qualifiedName);
+    this.namespaceUri = this.qualifiedName.getNamespaceURI();
+    this.out.setPrefix(this.qualifiedName);
   }
 
   private void box(final GeometryFactory geometryFactory,
     final BoundingBox areaBoundingBox) {
-    out.startTag(BOX);
-    srsName(out, geometryFactory);
-    out.startTag(COORDINATES);
-    out.text(areaBoundingBox.getMinX());
-    out.text(",");
-    out.text(areaBoundingBox.getMinY());
-    out.text(" ");
-    out.text(areaBoundingBox.getMaxX());
-    out.text(",");
-    out.text(areaBoundingBox.getMaxY());
-    out.endTag(COORDINATES);
-    out.endTag(BOX);
+    this.out.startTag(BOX);
+    srsName(this.out, geometryFactory);
+    this.out.startTag(COORDINATES);
+    this.out.text(areaBoundingBox.getMinX());
+    this.out.text(",");
+    this.out.text(areaBoundingBox.getMinY());
+    this.out.text(" ");
+    this.out.text(areaBoundingBox.getMaxX());
+    this.out.text(",");
+    this.out.text(areaBoundingBox.getMaxY());
+    this.out.endTag(COORDINATES);
+    this.out.endTag(BOX);
   }
 
   @Override
   public void close() {
-    if (!opened) {
+    if (!this.opened) {
       writeHeader();
     }
 
     writeFooter();
-    out.close();
+    this.out.close();
   }
 
   private void envelope(final GeometryFactory geometryFactory,
     final BoundingBox areaBoundingBox) {
-    out.startTag(ENVELOPE);
-    srsName(out, geometryFactory);
-    out.element(LOWER_CORNER,
-      areaBoundingBox.getMinX() + " " + areaBoundingBox.getMinY());
-    out.element(UPPER_CORNER,
-      areaBoundingBox.getMaxX() + " " + areaBoundingBox.getMaxY());
-    out.endTag(ENVELOPE);
+    this.out.startTag(ENVELOPE);
+    srsName(this.out, geometryFactory);
+    this.out.element(LOWER_CORNER, areaBoundingBox.getMinX() + " "
+      + areaBoundingBox.getMinY());
+    this.out.element(UPPER_CORNER, areaBoundingBox.getMaxX() + " "
+      + areaBoundingBox.getMaxY());
+    this.out.endTag(ENVELOPE);
   }
 
   @Override
   public void flush() {
-    out.flush();
+    this.out.flush();
+  }
+
+  public boolean isWriteNulls() {
+    return this.writeNulls;
   }
 
   @Override
   public void setProperty(final String name, final Object value) {
     if (name.equals(IoConstants.GEOMETRY_FACTORY)) {
       this.geometryFactory = (GeometryFactory)value;
+    } else if (IoConstants.WRITE_NULLS_PROPERTY.equals(name)) {
+      this.writeNulls = BooleanStringConverter.isTrue(value);
     }
     super.setProperty(name, value);
   }
 
   @Override
   public void write(final DataObject object) {
-    if (!opened) {
+    if (!this.opened) {
       writeHeader();
     }
-    out.startTag(FEATURE_MEMBER);
+    this.out.startTag(FEATURE_MEMBER);
     final DataObjectMetaData metaData = object.getMetaData();
     QName qualifiedName = metaData.getProperty(DataObjectMetaDataProperties.QUALIFIED_NAME);
     if (qualifiedName == null) {
@@ -119,39 +129,39 @@ public class GmlDataObjectWriter extends AbstractWriter<DataObject> implements
       metaData.setProperty(DataObjectMetaDataProperties.QUALIFIED_NAME,
         qualifiedName);
     }
-    out.startTag(qualifiedName);
+    this.out.startTag(qualifiedName);
 
     for (final Attribute attribute : metaData.getAttributes()) {
       final String attributeName = attribute.getName();
-      out.startTag(namespaceUri, attributeName);
       final Object value = object.getValue(attributeName);
-      final DataType type = attribute.getType();
-      final GmlFieldType fieldType = fieldTypes.getFieldType(type);
-      if (fieldType != null) {
-        fieldType.writeValue(out, value);
+      if (Property.hasValue(value) || this.writeNulls) {
+        this.out.startTag(this.namespaceUri, attributeName);
+        final DataType type = attribute.getType();
+        final GmlFieldType fieldType = this.fieldTypes.getFieldType(type);
+        fieldType.writeValue(this.out, value);
+        this.out.endTag();
       }
-      out.endTag();
     }
 
-    out.endTag(qualifiedName);
-    out.endTag(FEATURE_MEMBER);
+    this.out.endTag(qualifiedName);
+    this.out.endTag(FEATURE_MEMBER);
   }
 
   public void writeFooter() {
-    out.endTag(FEATURE_COLLECTION);
-    out.endDocument();
+    this.out.endTag(FEATURE_COLLECTION);
+    this.out.endDocument();
   }
 
   private void writeHeader() {
-    opened = true;
-    out.startDocument("UTF-8", "1.0");
+    this.opened = true;
+    this.out.startDocument("UTF-8", "1.0");
 
-    out.startTag(FEATURE_COLLECTION);
-    if (geometryFactory != null) {
-      out.startTag(BOUNDED_BY);
-      box(geometryFactory, geometryFactory.getCoordinateSystem()
+    this.out.startTag(FEATURE_COLLECTION);
+    if (this.geometryFactory != null) {
+      this.out.startTag(BOUNDED_BY);
+      box(this.geometryFactory, this.geometryFactory.getCoordinateSystem()
         .getAreaBoundingBox());
-      out.endTag(BOUNDED_BY);
+      this.out.endTag(BOUNDED_BY);
     }
   }
 

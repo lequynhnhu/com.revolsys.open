@@ -204,6 +204,17 @@ public final class Property {
     }
   }
 
+  public static boolean hasValue(final Object value) {
+    if (value == null) {
+      return false;
+    } else if (value instanceof String) {
+      final String string = (String)value;
+      return StringUtils.hasText(string);
+    } else {
+      return true;
+    }
+  }
+
   @SuppressWarnings("unchecked")
   public static <V> V invoke(final Object object, final String methodName,
     final Object... parameterArray) {

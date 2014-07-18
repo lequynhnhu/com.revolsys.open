@@ -18,6 +18,7 @@ public class GmlFieldTypeRegistry {
     addFieldType(new SimpleFieldType(DataTypes.BOOLEAN));
     addFieldType(new SimpleFieldType(DataTypes.BYTE));
     addFieldType(new SimpleFieldType(DataTypes.DATE));
+    addFieldType(new SimpleFieldType(DataTypes.SQL_DATE));
     addFieldType(new SimpleFieldType(DataTypes.DATE_TIME));
     addFieldType(new SimpleFieldType(DataTypes.DECIMAL));
     addFieldType(new SimpleFieldType(DataTypes.DOUBLE));
@@ -35,7 +36,7 @@ public class GmlFieldTypeRegistry {
   }
 
   public void addFieldType(final DataType dataType, final GmlFieldType fieldType) {
-    typeMapping.put(dataType, fieldType);
+    this.typeMapping.put(dataType, fieldType);
   }
 
   public void addFieldType(final GmlFieldType fieldType) {
@@ -44,6 +45,10 @@ public class GmlFieldTypeRegistry {
   }
 
   public GmlFieldType getFieldType(final DataType dataType) {
-    return typeMapping.get(dataType);
+    final GmlFieldType fieldType = this.typeMapping.get(dataType);
+    if (fieldType == null) {
+      return SimpleFieldType.OBJECT;
+    }
+    return fieldType;
   }
 }

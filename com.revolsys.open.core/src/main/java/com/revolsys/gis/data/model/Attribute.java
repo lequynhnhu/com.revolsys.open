@@ -32,7 +32,7 @@ import com.revolsys.util.MathUtil;
  * @see DataObjectMetaData
  */
 public class Attribute extends AbstractObjectWithProperties implements
-Cloneable, MapSerializer {
+  Cloneable, MapSerializer {
 
   public static Attribute create(final Map<String, Object> properties) {
     return new Attribute(properties);
@@ -102,7 +102,7 @@ Cloneable, MapSerializer {
     }
     this.description = CollectionUtil.getString(properties, "description");
     this.type = DataTypes.getType(CollectionUtil.getString(properties,
-        "dataType"));
+      "dataType"));
     this.required = CollectionUtil.getBool(properties, "required");
     this.length = CollectionUtil.getInteger(properties, "length", 0);
     this.scale = CollectionUtil.getInteger(properties, "scale", 0);
@@ -558,7 +558,7 @@ Cloneable, MapSerializer {
 
     if (isRequired()) {
       if (value == null || value instanceof String
-          && !StringUtils.hasText((String)value)) {
+        && !StringUtils.hasText((String)value)) {
         throw new IllegalArgumentException(fieldName + " is required");
       }
     }
@@ -623,13 +623,13 @@ Cloneable, MapSerializer {
             }
           }
         }
-        if (!this.allowedValues.isEmpty()) {
-          if (!this.allowedValues.containsKey(value)) {
-            throw new IllegalArgumentException(fieldName + "=" + value
-              + " not in (" + CollectionUtil.toString(",", this.allowedValues)
-              + ")");
-          }
-        }
+        // if (!this.allowedValues.isEmpty()) {
+        // if (!this.allowedValues.containsKey(value)) {
+        // throw new IllegalArgumentException(fieldName + "=" + value
+        // + " not in (" + CollectionUtil.toString(",", this.allowedValues)
+        // + ")");
+        // }
+        // }
       }
     }
 

@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.util.StringUtils;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.data.model.DataObject;
@@ -19,6 +20,7 @@ import com.revolsys.io.IoConstants;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.HtmlUtil;
+import com.revolsys.util.Property;
 
 public class XhtmlDataObjectWriter extends AbstractWriter<DataObject> {
   private static final NumberFormat NUMBER_FORMAT = new DecimalFormat(
@@ -39,6 +41,8 @@ public class XhtmlDataObjectWriter extends AbstractWriter<DataObject> {
 
   private boolean wrap = true;
 
+  private boolean writeNulls;
+
   public XhtmlDataObjectWriter(final DataObjectMetaData metaData,
     final Writer out) {
     this.metaData = metaData;
@@ -50,22 +54,22 @@ public class XhtmlDataObjectWriter extends AbstractWriter<DataObject> {
    */
   @Override
   public void close() {
-    if (out != null) {
+    if (this.out != null) {
       try {
         writeFooter();
-        out.flush();
+        this.out.flush();
       } finally {
-        if (wrap) {
-          FileUtil.closeSilent(out);
+        if (this.wrap) {
+          FileUtil.closeSilent(this.out);
         }
-        out = null;
+        this.out = null;
       }
     }
   }
 
   @Override
   public void flush() {
-    out.flush();
+    this.out.flush();
   }
 
   @Override
@@ -73,152 +77,160 @@ public class XhtmlDataObjectWriter extends AbstractWriter<DataObject> {
     super.setProperty(name, value);
     if (value != null) {
       if (name.equals(IoConstants.WRAP_PROPERTY)) {
-        wrap = Boolean.valueOf(value.toString());
+        this.wrap = Boolean.valueOf(value.toString());
       } else if (name.equals(IoConstants.TITLE_PROPERTY)) {
-        title = value.toString();
+        this.title = value.toString();
       } else if (name.equals(IoConstants.CSS_CLASS_PROPERTY)) {
-        cssClass = value.toString();
+        this.cssClass = value.toString();
+      } else if (IoConstants.WRITE_NULLS_PROPERTY.equals(name)) {
+        this.writeNulls = BooleanStringConverter.isTrue(value);
       }
     }
   }
 
+  public void setWriteNulls(final boolean writeNulls) {
+    this.writeNulls = writeNulls;
+  }
+
   @Override
   public void write(final DataObject object) {
-    if (!opened) {
+    if (!this.opened) {
       writeHeader();
     }
-    if (singleObject) {
-      for (final String key : metaData.getAttributeNames()) {
+    if (this.singleObject) {
+      for (final String key : this.metaData.getAttributeNames()) {
         final Object value = object.getValue(key);
-        out.startTag(HtmlUtil.TR);
-        out.element(HtmlUtil.TH,
-          CaseConverter.toCapitalizedWords(key.toString()));
-        out.startTag(HtmlUtil.TD);
-        if (value == null) {
-          out.text("-");
-        } else if (value instanceof URI) {
-          HtmlUtil.serializeA(out, null, value, value);
-        } else {
-          writeValue(key, value);
+        if (Property.hasValue(value) || this.writeNulls) {
+          this.out.startTag(HtmlUtil.TR);
+          this.out.element(HtmlUtil.TH,
+            CaseConverter.toCapitalizedWords(key.toString()));
+          this.out.startTag(HtmlUtil.TD);
+          if (value == null) {
+            this.out.text("-");
+          } else if (value instanceof URI) {
+            HtmlUtil.serializeA(this.out, null, value, value);
+          } else {
+            writeValue(key, value);
+          }
+          this.out.endTag(HtmlUtil.TD);
+          this.out.endTag(HtmlUtil.TR);
         }
-        out.endTag(HtmlUtil.TD);
-        out.endTag(HtmlUtil.TR);
       }
     } else {
-      out.startTag(HtmlUtil.TR);
-      for (final String key : metaData.getAttributeNames()) {
+      this.out.startTag(HtmlUtil.TR);
+      for (final String key : this.metaData.getAttributeNames()) {
         final Object value = object.getValue(key);
-        out.startTag(HtmlUtil.TD);
+        this.out.startTag(HtmlUtil.TD);
         if (value == null) {
-          out.text("-");
+          this.out.text("-");
         }
         if (value instanceof URI) {
-          HtmlUtil.serializeA(out, null, value, value);
+          HtmlUtil.serializeA(this.out, null, value, value);
         } else {
           writeValue(key, value);
         }
-        out.endTag(HtmlUtil.TD);
+        this.out.endTag(HtmlUtil.TD);
       }
-      out.endTag(HtmlUtil.TR);
+      this.out.endTag(HtmlUtil.TR);
 
     }
   }
 
   private void writeFooter() {
-    if (opened) {
-      out.endTag(HtmlUtil.TBODY);
-      out.endTag(HtmlUtil.TABLE);
-      out.endTag(HtmlUtil.DIV);
-      out.endTag(HtmlUtil.DIV);
-      if (wrap) {
-        out.endTag(HtmlUtil.BODY);
-        out.endTag(HtmlUtil.HTML);
+    if (this.opened) {
+      this.out.endTag(HtmlUtil.TBODY);
+      this.out.endTag(HtmlUtil.TABLE);
+      this.out.endTag(HtmlUtil.DIV);
+      this.out.endTag(HtmlUtil.DIV);
+      if (this.wrap) {
+        this.out.endTag(HtmlUtil.BODY);
+        this.out.endTag(HtmlUtil.HTML);
       }
     }
   }
 
   private void writeHeader() {
-    if (wrap) {
-      out.startDocument("UT-8", "1.0");
-      out.startTag(HtmlUtil.HTML);
+    if (this.wrap) {
+      this.out.startDocument("UTF-8", "1.0");
+      this.out.startTag(HtmlUtil.HTML);
 
-      out.startTag(HtmlUtil.HEAD);
+      this.out.startTag(HtmlUtil.HEAD);
 
-      out.startTag(HtmlUtil.META);
-      out.attribute(HtmlUtil.ATTR_HTTP_EQUIV, "Content-Type");
-      out.attribute(HtmlUtil.ATTR_CONTENT, "text/html; charset=utf-8");
-      out.endTag(HtmlUtil.META);
+      this.out.startTag(HtmlUtil.META);
+      this.out.attribute(HtmlUtil.ATTR_HTTP_EQUIV, "Content-Type");
+      this.out.attribute(HtmlUtil.ATTR_CONTENT, "text/html; charset=utf-8");
+      this.out.endTag(HtmlUtil.META);
 
-      if (StringUtils.hasText(title)) {
-        out.element(HtmlUtil.TITLE, title);
+      if (StringUtils.hasText(this.title)) {
+        this.out.element(HtmlUtil.TITLE, this.title);
       }
 
       final Object style = getProperty("htmlCssStyleUrl");
       if (style instanceof String) {
         final String styleUrl = (String)style;
-        out.startTag(HtmlUtil.LINK);
-        out.attribute(HtmlUtil.ATTR_HREF, styleUrl);
-        out.attribute(HtmlUtil.ATTR_REL, "stylesheet");
-        out.attribute(HtmlUtil.ATTR_TYPE, "text/css");
-        out.endTag(HtmlUtil.LINK);
+        this.out.startTag(HtmlUtil.LINK);
+        this.out.attribute(HtmlUtil.ATTR_HREF, styleUrl);
+        this.out.attribute(HtmlUtil.ATTR_REL, "stylesheet");
+        this.out.attribute(HtmlUtil.ATTR_TYPE, "text/css");
+        this.out.endTag(HtmlUtil.LINK);
       } else if (style instanceof List) {
         final List styleUrls = (List)style;
         for (final Object styleUrl : styleUrls) {
-          out.startTag(HtmlUtil.LINK);
-          out.attribute(HtmlUtil.ATTR_HREF, styleUrl);
-          out.attribute(HtmlUtil.ATTR_REL, "stylesheet");
-          out.attribute(HtmlUtil.ATTR_TYPE, "text/css");
-          out.endTag(HtmlUtil.LINK);
+          this.out.startTag(HtmlUtil.LINK);
+          this.out.attribute(HtmlUtil.ATTR_HREF, styleUrl);
+          this.out.attribute(HtmlUtil.ATTR_REL, "stylesheet");
+          this.out.attribute(HtmlUtil.ATTR_TYPE, "text/css");
+          this.out.endTag(HtmlUtil.LINK);
         }
       }
 
-      out.endTag(HtmlUtil.HEAD);
+      this.out.endTag(HtmlUtil.HEAD);
 
-      out.startTag(HtmlUtil.BODY);
+      this.out.startTag(HtmlUtil.BODY);
     }
-    out.startTag(HtmlUtil.DIV);
-    out.attribute(HtmlUtil.ATTR_CLASS, cssClass);
-    if (title != null) {
-      out.element(HtmlUtil.H1, title);
+    this.out.startTag(HtmlUtil.DIV);
+    this.out.attribute(HtmlUtil.ATTR_CLASS, this.cssClass);
+    if (this.title != null) {
+      this.out.element(HtmlUtil.H1, this.title);
     }
-    singleObject = Boolean.TRUE.equals(getProperty(IoConstants.SINGLE_OBJECT_PROPERTY));
-    if (singleObject) {
-      out.startTag(HtmlUtil.DIV);
-      out.attribute(HtmlUtil.ATTR_CLASS, "objectView");
-      out.startTag(HtmlUtil.TABLE);
-      out.attribute(HtmlUtil.ATTR_CLASS, "data");
-      out.startTag(HtmlUtil.TBODY);
+    this.singleObject = Boolean.TRUE.equals(getProperty(IoConstants.SINGLE_OBJECT_PROPERTY));
+    if (this.singleObject) {
+      this.out.startTag(HtmlUtil.DIV);
+      this.out.attribute(HtmlUtil.ATTR_CLASS, "objectView");
+      this.out.startTag(HtmlUtil.TABLE);
+      this.out.attribute(HtmlUtil.ATTR_CLASS, "data");
+      this.out.startTag(HtmlUtil.TBODY);
     } else {
-      out.startTag(HtmlUtil.DIV);
-      out.attribute(HtmlUtil.ATTR_CLASS, "objectList");
-      out.startTag(HtmlUtil.TABLE);
-      out.attribute(HtmlUtil.ATTR_CLASS, "data");
+      this.out.startTag(HtmlUtil.DIV);
+      this.out.attribute(HtmlUtil.ATTR_CLASS, "objectList");
+      this.out.startTag(HtmlUtil.TABLE);
+      this.out.attribute(HtmlUtil.ATTR_CLASS, "data");
 
-      out.startTag(HtmlUtil.THEAD);
-      out.startTag(HtmlUtil.TR);
-      for (final String name : metaData.getAttributeNames()) {
-        out.element(HtmlUtil.TH, name);
+      this.out.startTag(HtmlUtil.THEAD);
+      this.out.startTag(HtmlUtil.TR);
+      for (final String name : this.metaData.getAttributeNames()) {
+        this.out.element(HtmlUtil.TH, name);
       }
-      out.endTag(HtmlUtil.TR);
-      out.endTag(HtmlUtil.THEAD);
+      this.out.endTag(HtmlUtil.TR);
+      this.out.endTag(HtmlUtil.THEAD);
 
-      out.startTag(HtmlUtil.TBODY);
+      this.out.startTag(HtmlUtil.TBODY);
     }
-    opened = true;
+    this.opened = true;
   }
 
   public void writeValue(final String name, final Object value) {
-    final DataType dataType = metaData.getAttributeType(name);
+    final DataType dataType = this.metaData.getAttributeType(name);
 
     @SuppressWarnings("unchecked")
     final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
     final StringConverter<Object> converter = StringConverterRegistry.getInstance()
       .getConverter(dataTypeClass);
     if (converter == null) {
-      out.text(value);
+      this.out.text(value);
     } else {
       final String stringValue = converter.toString(value);
-      out.text(stringValue);
+      this.out.text(stringValue);
     }
   }
 }

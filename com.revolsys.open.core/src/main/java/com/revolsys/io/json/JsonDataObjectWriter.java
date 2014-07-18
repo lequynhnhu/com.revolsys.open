@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectMetaData;
@@ -15,6 +16,7 @@ import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.io.AbstractWriter;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
+import com.revolsys.util.Property;
 
 public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
 
@@ -31,6 +33,8 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
   private boolean singleObject;
 
   private boolean written;
+
+  private boolean writeNulls;
 
   private static final NumberFormat NUMBER_FORMAT = new DecimalFormat(
     "#.#########################");
@@ -50,28 +54,28 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
       final char c = string.charAt(i);
       switch (c) {
         case '"':
-          out.print("\\\"");
+          this.out.print("\\\"");
         break;
         case '\\':
-          out.print("\\\\");
+          this.out.print("\\\\");
         break;
         case '\b':
-          out.print("\\b");
+          this.out.print("\\b");
         break;
         case '\f':
-          out.print("\\f");
+          this.out.print("\\f");
         break;
         case '\n':
-          out.print("\\n");
+          this.out.print("\\n");
         break;
         case '\r':
-          out.print("\\r");
+          this.out.print("\\r");
         break;
         case '\t':
-          out.print("\\t");
+          this.out.print("\\t");
         break;
         default:
-          out.print(c);
+          this.out.print(c);
         break;
       }
     }
@@ -79,51 +83,51 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
 
   @Override
   public void close() {
-    if (out != null) {
+    if (this.out != null) {
       try {
-        if (!singleObject) {
-          out.print("\n]}\n");
+        if (!this.singleObject) {
+          this.out.print("\n]}\n");
         }
         final String callback = getProperty(IoConstants.JSONP_PROPERTY);
         if (callback != null) {
-          out.print(");\n");
+          this.out.print(");\n");
         }
       } finally {
-        FileUtil.closeSilent(out);
-        out = null;
+        FileUtil.closeSilent(this.out);
+        this.out = null;
       }
     }
-    metaData = null;
+    this.metaData = null;
   }
 
   private void endAttribute() {
-    out.print(",\n");
-    startAttribute = false;
+    this.out.print(",\n");
+    this.startAttribute = false;
   }
 
   private void endList() {
-    depth--;
-    out.print('\n');
+    this.depth--;
+    this.out.print('\n');
     indent();
-    out.print("]");
+    this.out.print("]");
   }
 
   private void endObject() {
-    depth--;
-    out.print('\n');
+    this.depth--;
+    this.out.print('\n');
     indent();
-    out.print("}");
+    this.out.print("}");
   }
 
   @Override
   public void flush() {
-    out.flush();
+    this.out.flush();
   }
 
   private void indent() {
-    if (indent) {
-      for (int i = 0; i < depth; i++) {
-        out.write("  ");
+    if (this.indent) {
+      for (int i = 0; i < this.depth; i++) {
+        this.out.write("  ");
       }
     }
   }
@@ -131,8 +135,8 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
   private void label(final String key) {
     indent();
     string(key);
-    out.print(": ");
-    startAttribute = true;
+    this.out.print(": ");
+    this.startAttribute = true;
   }
 
   private void list(final List<? extends Object> values) {
@@ -157,43 +161,57 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
     this.indent = indent;
   }
 
+  @Override
+  public void setProperty(final String name, final Object value) {
+    super.setProperty(name, value);
+    if (name.equals(IoConstants.INDENT_PROPERTY)) {
+      setIndent((Boolean)value);
+    } else if (IoConstants.WRITE_NULLS_PROPERTY.equals(name)) {
+      this.writeNulls = BooleanStringConverter.isTrue(value);
+    }
+  }
+
+  public void setWriteNulls(final boolean writeNulls) {
+    this.writeNulls = writeNulls;
+  }
+
   private void startList() {
-    if (!startAttribute) {
+    if (!this.startAttribute) {
       indent();
     }
-    out.print("[\n");
-    depth++;
-    startAttribute = false;
+    this.out.print("[\n");
+    this.depth++;
+    this.startAttribute = false;
   }
 
   private void startObject() {
-    if (!startAttribute) {
+    if (!this.startAttribute) {
       indent();
     }
-    out.print("{\n");
-    depth++;
-    startAttribute = false;
+    this.out.print("{\n");
+    this.depth++;
+    this.startAttribute = false;
   }
 
   private void string(final CharSequence string) {
-    out.print('"');
+    this.out.print('"');
     charSequence(string);
-    out.print('"');
+    this.out.print('"');
   }
 
   @Override
   public String toString() {
-    return metaData.getPath().toString();
+    return this.metaData.getPath().toString();
   }
 
   @SuppressWarnings("unchecked")
   private void value(final DataType dataType, final Object value) {
     if (value == null) {
-      out.print("null");
+      this.out.print("null");
     } else if (value instanceof Boolean) {
-      out.print(value);
+      this.out.print(value);
     } else if (value instanceof Number) {
-      out.print(NUMBER_FORMAT.format(value));
+      this.out.print(NUMBER_FORMAT.format(value));
     } else if (value instanceof List) {
       final List<? extends Object> list = (List<? extends Object>)value;
       list(list);
@@ -213,22 +231,22 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
 
   @Override
   public void write(final DataObject object) {
-    if (written) {
-      out.print(",\n");
+    if (this.written) {
+      this.out.print(",\n");
     } else {
       writeHeader();
     }
     startObject();
     boolean first = true;
-    final int attributeCount = metaData.getAttributeCount();
+    final int attributeCount = this.metaData.getAttributeCount();
     for (int i = 0; i < attributeCount; i++) {
       final Object value = object.getValue(i);
-      if (value != null) {
+      if (Property.hasValue(value) || this.writeNulls) {
         if (!first) {
           endAttribute();
         }
-        final String name = metaData.getAttributeName(i);
-        final DataType dataType = metaData.getAttributeType(i);
+        final String name = this.metaData.getAttributeName(i);
+        final DataType dataType = this.metaData.getAttributeType(i);
         label(name);
         value(dataType, value);
         first = false;
@@ -261,10 +279,10 @@ public class JsonDataObjectWriter extends AbstractWriter<DataObject> {
       this.out.print(callback);
       this.out.print('(');
     }
-    singleObject = Boolean.TRUE.equals(getProperty(IoConstants.SINGLE_OBJECT_PROPERTY));
-    if (!singleObject) {
+    this.singleObject = Boolean.TRUE.equals(getProperty(IoConstants.SINGLE_OBJECT_PROPERTY));
+    if (!this.singleObject) {
       this.out.print("{\"items\": [\n");
     }
-    written = true;
+    this.written = true;
   }
 }

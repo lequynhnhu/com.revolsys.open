@@ -12,6 +12,8 @@ public interface IoConstants {
 
   String INDENT_PROPERTY = "java:" + IoConstants.class.getName() + ".indent";
 
+  String WRITE_NULLS_PROPERTY = "writeNulls";
+
   String JSONP_PROPERTY = "java:" + IoConstants.class.getName() + ".jsonp";
 
   String JSON_LIST_ROOT_PROPERTY = "java:" + IoConstants.class.getName()

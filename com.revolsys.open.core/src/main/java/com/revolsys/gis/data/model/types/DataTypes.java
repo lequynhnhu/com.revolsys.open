@@ -31,6 +31,52 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public final class DataTypes {
 
+  public static DataType getType(final Class<?> clazz) {
+    final String className = clazz.getName();
+    final DataType type = CLASS_TYPE_MAP.get(className);
+    if (type == null) {
+      if (List.class.isAssignableFrom(clazz)) {
+        return LIST;
+      } else if (Set.class.isAssignableFrom(clazz)) {
+        return SET;
+      } else {
+        return OBJECT;
+      }
+    } else {
+      return type;
+    }
+  }
+
+  public static DataType getType(final Object object) {
+    if (object == null) {
+      return null;
+    } else {
+      final Class<?> clazz = object.getClass();
+      return getType(clazz);
+    }
+  }
+
+  public static DataType getType(final String name) {
+    final DataType type = NAME_TYPE_MAP.get(name);
+    if (type == null) {
+      return OBJECT;
+    } else {
+      return type;
+    }
+  }
+
+  public static void register(final Class<?> typeClass, final DataType type) {
+    final String typeClassName = typeClass.getName();
+    CLASS_TYPE_MAP.put(typeClassName, type);
+  }
+
+  public static void register(final DataType type) {
+    final String name = type.getName();
+    NAME_TYPE_MAP.put(name, type);
+    final Class<?> typeClass = type.getJavaClass();
+    register(typeClass, type);
+  }
+
   public static final DataType OBJECT = new SimpleDataType("object",
     Object.class);
 
@@ -54,6 +100,9 @@ public final class DataTypes {
 
   public static final DataType DATE = new SimpleDataType("date",
     java.util.Date.class);
+
+  public static final DataType SQL_DATE = new SimpleDataType("sqlDate",
+    java.sql.Date.class);
 
   public static final DataType DATE_TIME = new SimpleDataType("dateTime",
     Timestamp.class);
@@ -149,52 +198,6 @@ public final class DataTypes {
     register(Long.TYPE, LONG);
     register(Float.TYPE, FLOAT);
     register(Double.TYPE, DOUBLE);
-  }
-
-  public static DataType getType(final Class<?> clazz) {
-    final String className = clazz.getName();
-    final DataType type = CLASS_TYPE_MAP.get(className);
-    if (type == null) {
-      if (List.class.isAssignableFrom(clazz)) {
-        return LIST;
-      } else if (Set.class.isAssignableFrom(clazz)) {
-        return SET;
-      } else {
-        return OBJECT;
-      }
-    } else {
-      return type;
-    }
-  }
-
-  public static DataType getType(final Object object) {
-    if (object == null) {
-      return null;
-    } else {
-      final Class<?> clazz = object.getClass();
-      return getType(clazz);
-    }
-  }
-
-  public static DataType getType(final String name) {
-    final DataType type = NAME_TYPE_MAP.get(name);
-    if (type == null) {
-      return OBJECT;
-    } else {
-      return type;
-    }
-  }
-
-  public static void register(final Class<?> typeClass, final DataType type) {
-    final String typeClassName = typeClass.getName();
-    CLASS_TYPE_MAP.put(typeClassName, type);
-  }
-
-  public static void register(final DataType type) {
-    final String name = type.getName();
-    NAME_TYPE_MAP.put(name, type);
-    final Class<?> typeClass = type.getJavaClass();
-    register(typeClass, type);
   }
 
   private DataTypes() {

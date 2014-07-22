@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +38,7 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class DataObjectReaderHttpMessageConverter extends
-  AbstractHttpMessageConverter<DataObjectReader> {
+AbstractHttpMessageConverter<DataObjectReader> {
 
   private List<String> requestAttributeNames = Arrays.asList(
     IoConstants.SINGLE_OBJECT_PROPERTY, Kml22Constants.STYLE_URL_PROPERTY,
@@ -61,11 +60,11 @@ public class DataObjectReaderHttpMessageConverter extends
   }
 
   public GeometryFactory getGeometryFactory() {
-    return geometryFactory;
+    return this.geometryFactory;
   }
 
   public List<String> getRequestAttributeNames() {
-    return requestAttributeNames;
+    return this.requestAttributeNames;
   }
 
   @Override
@@ -81,17 +80,17 @@ public class DataObjectReaderHttpMessageConverter extends
       }
       final InputStream body = inputMessage.getBody();
       final String mediaTypeString = mediaType.getType() + "/"
-        + mediaType.getSubtype();
-      final DataObjectReaderFactory readerFactory = ioFactoryRegistry.getFactoryByMediaType(
+          + mediaType.getSubtype();
+      final DataObjectReaderFactory readerFactory = this.ioFactoryRegistry.getFactoryByMediaType(
         DataObjectReaderFactory.class, mediaTypeString);
       if (readerFactory == null) {
         throw new HttpMessageNotReadableException("Cannot read data in format"
-          + mediaType);
+            + mediaType);
       } else {
         final Reader<DataObject> reader = readerFactory.createDataObjectReader(new InputStreamResource(
           "dataObjectInput", body));
 
-        GeometryFactory factory = geometryFactory;
+        GeometryFactory factory = this.geometryFactory;
         final ServletWebRequest requestAttributes = (ServletWebRequest)RequestContextHolder.getRequestAttributes();
         final String srid = requestAttributes.getParameter("srid");
         if (srid != null && srid.trim().length() > 0) {
@@ -125,15 +124,11 @@ public class DataObjectReaderHttpMessageConverter extends
         actualMediaType = mediaType;
       }
       if (actualMediaType != null) {
-        Charset charset = actualMediaType.getCharSet();
-        if (charset == null) {
-          charset = FileUtil.UTF8;
-          actualMediaType = new MediaType(actualMediaType,
-            Collections.singletonMap("charset", charset.name()));
-        }
+        final Charset charset = HttpServletUtils.setContentTypeWithCharset(
+          outputMessage, actualMediaType);
         final String mediaTypeString = actualMediaType.getType() + "/"
-          + actualMediaType.getSubtype();
-        final DataObjectWriterFactory writerFactory = ioFactoryRegistry.getFactoryByMediaType(
+            + actualMediaType.getSubtype();
+        final DataObjectWriterFactory writerFactory = this.ioFactoryRegistry.getFactoryByMediaType(
           DataObjectWriterFactory.class, mediaTypeString);
         if (writerFactory == null) {
           throw new IllegalArgumentException("Media type " + actualMediaType
@@ -141,7 +136,6 @@ public class DataObjectReaderHttpMessageConverter extends
         } else {
           final DataObjectMetaData metaData = reader.getMetaData();
           final HttpHeaders headers = outputMessage.getHeaders();
-          headers.setContentType(actualMediaType);
           final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
           String baseName = (String)requestAttributes.getAttribute(
             "contentDispositionFileName", RequestAttributes.SCOPE_REQUEST);
@@ -154,9 +148,9 @@ public class DataObjectReaderHttpMessageConverter extends
             contentDisposition = "attachment";
           }
           final String fileName = baseName + "."
-            + writerFactory.getFileExtension(mediaTypeString);
+              + writerFactory.getFileExtension(mediaTypeString);
           headers.set("Content-Disposition", contentDisposition + "; filename="
-            + fileName);
+              + fileName);
 
           final OutputStream body = outputMessage.getBody();
           final Writer<DataObject> writer = writerFactory.createDataObjectWriter(
@@ -177,7 +171,7 @@ public class DataObjectReaderHttpMessageConverter extends
             final Object value = requestAttributes.getAttribute(attributeName,
               RequestAttributes.SCOPE_REQUEST);
             if (value != null && attributeName.startsWith("java:")
-              || requestAttributeNames.contains(attributeName)) {
+                || this.requestAttributeNames.contains(attributeName)) {
               writer.setProperty(attributeName, value);
             }
           }

@@ -91,7 +91,7 @@ public class XbaseDataObjectWriter extends AbstractWriter<DataObject> {
       } else {
         length = Math.min(18, length);
       }
-      if (scale < -1) {
+      if (scale < 0) {
         scale = 3;
       }
       scale = Math.min(15, scale);

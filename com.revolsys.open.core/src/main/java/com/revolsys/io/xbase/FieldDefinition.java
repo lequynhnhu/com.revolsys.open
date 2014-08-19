@@ -5,13 +5,13 @@
  * $Revision$
 
  * Copyright 2004-2005 Revolution Systems Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -78,63 +78,68 @@ public class FieldDefinition {
   }
 
   public FieldDefinition(final String name, final String fullName,
-    final char type, final int length, final int decimalPlaces) {
+    final char type, int length, final int decimalPlaces) {
     this.name = name;
     this.fullName = fullName;
     this.type = type;
     this.dataType = DATA_TYPES.get(type);
-    this.length = length;
     this.decimalPlaces = decimalPlaces;
     if (type == FieldDefinition.NUMBER_TYPE) {
+      if (length == -1) {
+        length = 18;
+      }
+      this.length = Math.max(length, 18);
       final StringBuffer format = new StringBuffer("0");
       if (decimalPlaces > 0) {
         format.append(".");
         for (int i = 0; i < decimalPlaces; i++) {
           format.append("#");
         }
-        precisionModel = new PrecisionModel(Math.pow(10, decimalPlaces));
+        this.precisionModel = new PrecisionModel(Math.pow(10, decimalPlaces));
       } else if (decimalPlaces == -1 && length > 2) {
         format.append(".");
         for (int i = 0; i < length - 2; i++) {
           format.append("#");
         }
       } else {
-        precisionModel = new PrecisionModel(1);
+        this.precisionModel = new PrecisionModel(1);
       }
-      numberFormat = new DecimalFormat(format.toString());
+      this.numberFormat = new DecimalFormat(format.toString());
+    } else {
+      this.length = length;
     }
   }
 
   public DataType getDataType() {
-    return dataType;
+    return this.dataType;
   }
 
   public int getDecimalPlaces() {
-    return decimalPlaces;
+    return this.decimalPlaces;
   }
 
   public String getFullName() {
-    return fullName;
+    return this.fullName;
   }
 
   public int getLength() {
-    return length;
+    return this.length;
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 
   public DecimalFormat getNumberFormat() {
-    return numberFormat;
+    return this.numberFormat;
   }
 
   public PrecisionModel getPrecisionModel() {
-    return precisionModel;
+    return this.precisionModel;
   }
 
   public char getType() {
-    return type;
+    return this.type;
   }
 
   public void setPrecisionModel(final PrecisionModel precisionModel) {
@@ -143,7 +148,7 @@ public class FieldDefinition {
 
   @Override
   public String toString() {
-    return name + ":" + dataType + "(" + length + ")";
+    return this.name + ":" + this.dataType + "(" + this.length + ")";
   }
 
 }

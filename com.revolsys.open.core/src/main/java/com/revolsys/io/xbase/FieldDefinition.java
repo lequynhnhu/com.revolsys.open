@@ -88,7 +88,7 @@ public class FieldDefinition {
       if (length == -1) {
         length = 18;
       }
-      this.length = Math.max(length, 18);
+      this.length = Math.min(length, 18);
       final StringBuffer format = new StringBuffer("0");
       if (decimalPlaces > 0) {
         format.append(".");

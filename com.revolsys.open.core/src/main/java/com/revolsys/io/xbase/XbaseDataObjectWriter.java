@@ -60,7 +60,7 @@ public class XbaseDataObjectWriter extends AbstractWriter<DataObject> {
   }
 
   protected int addDbaseField(final String fullName, final DataType dataType,
-    final Class<?> typeJavaClass, int length, final int scale) {
+    final Class<?> typeJavaClass, int length, int scale) {
     char type = FieldDefinition.NUMBER_TYPE;
     if (typeJavaClass == Boolean.class) {
       type = FieldDefinition.LOGICAL_TYPE;
@@ -68,12 +68,16 @@ public class XbaseDataObjectWriter extends AbstractWriter<DataObject> {
       type = FieldDefinition.DATE_TYPE;
     } else if (typeJavaClass == Long.class || typeJavaClass == BigInteger.class) {
       length = 18;
+      scale = 0;
     } else if (typeJavaClass == Integer.class) {
       length = 10;
+      scale = 0;
     } else if (typeJavaClass == Short.class) {
       length = 5;
+      scale = 0;
     } else if (typeJavaClass == Byte.class) {
-      length = 5;
+      length = 3;
+      scale = 0;
     } else if (Number.class.isAssignableFrom(typeJavaClass)) {
     } else {
       type = FieldDefinition.CHARACTER_TYPE;

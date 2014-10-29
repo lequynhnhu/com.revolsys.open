@@ -91,10 +91,6 @@ import com.revolsys.util.UrlUtil;
 @ResponseStatus(reason = "Access Denied", value = HttpStatus.FORBIDDEN)
 public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
-  private static final Pattern LINK_KEY_PATTERN = Pattern.compile("link\\(([\\w/]+),([\\w.]+)\\)");
-
-  private static final Pattern SUB_KEY_PATTERN = Pattern.compile("^([\\w]+)(?:\\.(.+))?");
-
   public static HttpServletRequest getRequest() {
     final ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
     final HttpServletRequest request = requestAttributes.getRequest();
@@ -129,6 +125,10 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   public static boolean isHtmlPage(final HttpServletRequest request) {
     return MediaTypeUtil.isPreferedMediaType(request, MediaType.TEXT_HTML);
   }
+
+  private static final Pattern LINK_KEY_PATTERN = Pattern.compile("link\\(([\\w/]+),([\\w.]+)\\)");
+
+  private static final Pattern SUB_KEY_PATTERN = Pattern.compile("^([\\w]+)(?:\\.(.+))?");
 
   private BeanFactory beanFactory;
 
@@ -195,11 +195,11 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         }
       }
     }
-    classSerializers.put(Date.class, new DateTimeSerializer());
-    classSerializers.put(java.sql.Date.class, new DateSerializer());
-    classSerializers.put(Timestamp.class, new TimestampSerializer());
-    classSerializers.put(Boolean.class, new BooleanSerializer());
-    listSortOrder.put("list",
+    this.classSerializers.put(Date.class, new DateTimeSerializer());
+    this.classSerializers.put(java.sql.Date.class, new DateSerializer());
+    this.classSerializers.put(Timestamp.class, new TimestampSerializer());
+    this.classSerializers.put(Boolean.class, new BooleanSerializer());
+    this.listSortOrder.put("list",
       Collections.singletonList(Arrays.<Object> asList(0, "asc")));
   }
 
@@ -241,7 +241,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public void addKeySerializer(final KeySerializer keySerializer) {
-    keySerializers.put(keySerializer.getName(), keySerializer);
+    this.keySerializers.put(keySerializer.getName(), keySerializer);
   }
 
   public void addMenuElement(final ElementContainer container, final Menu menu) {
@@ -298,7 +298,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
    * @param label
    */
   public void addNullLabel(final String key, final String label) {
-    nullLabels.put(key, label);
+    this.nullLabels.put(key, label);
   }
 
   public void addObjectViewPage(final TabElementContainer tabs,
@@ -613,7 +613,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       if (pageSize < 0) {
         pageSize = numRecords;
       } else if (pageSize == 0) {
-        pageSize = defaultPageSize;
+        pageSize = this.defaultPageSize;
       }
       pager.setPageSize(pageSize);
 
@@ -658,14 +658,14 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       serializers);
     model.setObject(object);
     final DetailView detailView = new DetailView(model, "objectView "
-      + typeName);
+      + this.typeName);
     return new ElementContainer(detailView);
   }
 
   /**
    * Create a form for the object using the specified list of fields keys. The
    * form is created without the form title.
-   * 
+   *
    * @param <T> The type of form to return.
    * @param object The object to create the form for.
    * @param keyListName The name of the list of keys for the fields to include
@@ -735,7 +735,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
           final String viewName = getName(prefix, "view");
           final String url = getPageUrl(viewName, parameters);
           redirectAfterCommit(url);
-          return new Element();
+          return new ElementContainer();
         }
       }
     }
@@ -786,7 +786,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
           final String url = getPageUrl(viewName, parameters);
           redirectAfterCommit(url);
-          return new Element();
+          return new ElementContainer();
         } else {
           setRollbackOnly(object);
         }
@@ -826,7 +826,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
       final Page page = getPage(pageName);
       if (page == null) {
-        log.error("Page not found " + pageName);
+        this.log.error("Page not found " + pageName);
         throw new PageNotFoundException();
       } else {
         final List<KeySerializer> serializers = getSerializers(pageName, "view");
@@ -839,7 +839,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
         final ElementContainer view = new ElementContainer(detailView);
         if (collapsible) {
-          view.setDecorator(new CollapsibleBox(title, true));
+          view.setDecorator(new CollapsibleBox(this.title, true));
         }
         addMenuElement(view, actionMenu);
         return view;
@@ -858,38 +858,38 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   @PreDestroy
   public void destroy() {
-    beanFactory = null;
-    builderFactory = null;
-    classSerializers = null;
-    fieldInstructions = null;
-    fieldLabels = null;
-    fields = null;
-    idParameterName = null;
-    idPropertyName = null;
-    keyLists = null;
-    keySerializers = null;
-    labels = null;
-    log = null;
-    messages = null;
-    nullLabels = null;
-    pagesByName = null;
-    pageUrls = null;
-    pluralTitle = null;
-    title = null;
-    typeName = null;
-    viewSerializers = null;
+    this.beanFactory = null;
+    this.builderFactory = null;
+    this.classSerializers = null;
+    this.fieldInstructions = null;
+    this.fieldLabels = null;
+    this.fields = null;
+    this.idParameterName = null;
+    this.idPropertyName = null;
+    this.keyLists = null;
+    this.keySerializers = null;
+    this.labels = null;
+    this.log = null;
+    this.messages = null;
+    this.nullLabels = null;
+    this.pagesByName = null;
+    this.pageUrls = null;
+    this.pluralTitle = null;
+    this.title = null;
+    this.typeName = null;
+    this.viewSerializers = null;
   }
 
   /**
    * @return Returns the beanFactory.
    */
   protected final BeanFactory getBeanFactory() {
-    return beanFactory;
+    return this.beanFactory;
   }
 
   /**
    * Get the HTML UI Builder for the object's class.
-   * 
+   *
    * @param objectClass<?> The object class.
    * @return The builder.
    */
@@ -897,18 +897,18 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     "unchecked", "rawtypes"
   })
   public <H extends HtmlUiBuilder<?>> H getBuilder(final Class<?> objectClass) {
-    if (builderFactory != null) {
-      return builderFactory.get(objectClass);
+    if (this.builderFactory != null) {
+      return this.builderFactory.get(objectClass);
     } else {
-      final HtmlUiBuilder htmlUiBuilder = HtmlUiBuilderFactory.get(beanFactory,
-        objectClass);
+      final HtmlUiBuilder htmlUiBuilder = HtmlUiBuilderFactory.get(
+        this.beanFactory, objectClass);
       return (H)htmlUiBuilder;
     }
   }
 
   /**
    * Get the HTML UI Builder for the object's class.
-   * 
+   *
    * @param object The object.
    * @return The builder.
    */
@@ -938,25 +938,25 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   /**
    * Get the HTML UI Builder for the class.
-   * 
+   *
    * @param className The name of the class.
    * @return The builder.
    */
   @SuppressWarnings("unchecked")
   public <H extends HtmlUiBuilder<?>> H getBuilder(final String typeName) {
     @SuppressWarnings("rawtypes")
-    final HtmlUiBuilder htmlUiBuilder = HtmlUiBuilderFactory.get(beanFactory,
-      typeName);
+    final HtmlUiBuilder htmlUiBuilder = HtmlUiBuilderFactory.get(
+      this.beanFactory, typeName);
     return (H)htmlUiBuilder;
   }
 
   /**
    * Get the factory used to get related HTML UI builders,
-   * 
+   *
    * @return The factory.
    */
   public HtmlUiBuilderFactory getBuilderFactory() {
-    return builderFactory;
+    return this.builderFactory;
   }
 
   public Map<String, Boolean> getDataTableSortOrder(
@@ -991,13 +991,13 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public int getDefaultPageSize() {
-    return defaultPageSize;
+    return this.defaultPageSize;
   }
 
   /**
    * Create a new field (or element) for the named key. The parameters from the
    * HttpRequest can be used to customise the look of the field.
-   * 
+   *
    * @param request The servlet request.
    * @param key The field key.
    * @return The generated field element.
@@ -1005,8 +1005,8 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   public Element getField(final HttpServletRequest request, final String key) {
     if (key.equals("id")) {
       return new LongField("id", false);
-    } else if (fields.containsKey(key)) {
-      final Element field = fields.get(key);
+    } else if (this.fields.containsKey(key)) {
+      final Element field = this.fields.get(key);
       return field.clone();
     } else {
       final TextField field = new TextField(key, false);
@@ -1015,11 +1015,11 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public String getFieldInstruction(final String key) {
-    return fieldInstructions.get(key);
+    return this.fieldInstructions.get(key);
   }
 
   public Map<String, String> getFieldInstructions() {
-    return fieldInstructions;
+    return this.fieldInstructions;
   }
 
   public Decorator getFieldLabel(final String key, final boolean field) {
@@ -1039,11 +1039,11 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public Map<String, Decorator> getFieldLabels() {
-    return fieldLabels;
+    return this.fieldLabels;
   }
 
   public Map<String, Element> getFields() {
-    return fields;
+    return this.fields;
   }
 
   public Decorator getFieldTableLabel(final String key) {
@@ -1058,42 +1058,42 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
    * @return Returns the idParameterName.
    */
   public String getIdParameterName() {
-    return idParameterName;
+    return this.idParameterName;
   }
 
   public String getIdPropertyName() {
-    return idPropertyName;
+    return this.idPropertyName;
   }
 
   public Object getIdValue(final Object object) {
-    return Property.get(object, idPropertyName);
+    return Property.get(object, this.idPropertyName);
   }
 
   /**
    * Get the key list with the specified name, or the default if not defined.
-   * 
+   *
    * @param name The name of the key list.
    * @return The key list.
    */
   public List<String> getKeyList(final String name) {
-    return getKeyListOrDefault(keyLists, name, "default");
+    return getKeyListOrDefault(this.keyLists, name, "default");
   }
 
   /**
    * Get the key list with the specified name, or the list for defaultName if
    * not defined.
-   * 
+   *
    * @param name The name of the key list.
    * @param defaultName The name of the default key list to use.
    * @return The key list.
    */
   public List<String> getKeyList(final String name, final String defaultName) {
-    return getKeyListOrDefault(keyLists, name, defaultName);
+    return getKeyListOrDefault(this.keyLists, name, defaultName);
   }
 
   /**
    * Get the key list with the specified name, or the default if not defined.
-   * 
+   *
    * @param keyLists The map of key lists.
    * @param name The name of the key list.
    * @param defaultName The name of the default key List
@@ -1114,18 +1114,18 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   /**
    * Get the map of key lists.
-   * 
+   *
    * @return The map of key lists.
    */
   public Map<String, List<String>> getKeyLists() {
-    return keyLists;
+    return this.keyLists;
   }
 
   /**
    * @return Returns the keySerializers.
    */
   public Map<String, KeySerializer> getKeySerializers() {
-    return keySerializers;
+    return this.keySerializers;
   }
 
   /**
@@ -1146,7 +1146,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
    * <p>
    * After the first call for a particular key the calculated labels are cached.
    * </p>
-   * 
+   *
    * @param key The key.
    * @return The label.
    */
@@ -1165,21 +1165,21 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         }
       }
 
-      labels.put(key, label);
+      this.labels.put(key, label);
     }
     return label;
   }
 
   public Map<String, String> getLabels() {
-    return labels;
+    return this.labels;
   }
 
   public Map<String, List<List<Object>>> getListSortOrder() {
-    return listSortOrder;
+    return this.listSortOrder;
   }
 
   public List<List<Object>> getListSortOrder(final String pageName) {
-    final List<List<Object>> sortOrder = listSortOrder.get(pageName);
+    final List<List<Object>> sortOrder = this.listSortOrder.get(pageName);
     if (sortOrder == null) {
       if (pageName.equals("list")) {
         return Collections.emptyList();
@@ -1192,11 +1192,11 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public int getMaxPageSize() {
-    return maxPageSize;
+    return this.maxPageSize;
   }
 
   public String getMessage(final String messageName) {
-    return messages.get(messageName);
+    return this.messages.get(messageName);
   }
 
   public String getMessage(final String messageName,
@@ -1211,7 +1211,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
           return (String)expression.evaluate(context);
         }
       } catch (final Throwable e) {
-        log.error(e.getMessage(), e);
+        this.log.error(e.getMessage(), e);
       }
     }
     return message;
@@ -1226,18 +1226,18 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   private String getNullLabel(final String key) {
-    return nullLabels.get(key);
+    return this.nullLabels.get(key);
   }
 
   /**
    * @return Returns the nullLabels.
    */
   public Map<String, String> getNullLabels() {
-    return nullLabels;
+    return this.nullLabels;
   }
 
   public Page getPage(final String path) {
-    Page linkPage = pagesByName.get(path);
+    Page linkPage = this.pagesByName.get(path);
     if (linkPage == null) {
       final WebUiContext webUiContext = WebUiContext.get();
       if (webUiContext != null) {
@@ -1247,7 +1247,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         }
       }
       if (linkPage == null) {
-        final String pageByName = pageUrls.get(path);
+        final String pageByName = this.pageUrls.get(path);
         if (pageByName != null) {
           linkPage = new Page(null, getPluralTitle(), pageByName, false);
         }
@@ -1263,7 +1263,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public Map<String, Page> getPagesByName() {
-    return pagesByName;
+    return this.pagesByName;
   }
 
   public String getPageTitle(final String pageName) {
@@ -1293,23 +1293,24 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public String getPageUrlOld(final String name) {
-    final String url = pageUrls.get(name);
+    final String url = this.pageUrls.get(name);
     return url;
   }
 
   public Map<String, String> getPageUrls() {
-    return pageUrls;
+    return this.pageUrls;
   }
 
   public String getPluralTitle() {
-    return pluralTitle;
+    return this.pluralTitle;
   }
 
   public Object getProperty(final Object object, final String keyName) {
     try {
       return Property.get(object, keyName);
     } catch (final Throwable e) {
-      log.error("Unable to get property " + keyName + " for:\n" + object, e);
+      this.log.error("Unable to get property " + keyName + " for:\n" + object,
+        e);
       return "ERROR";
     }
   }
@@ -1319,7 +1320,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   protected List<KeySerializer> getSerializers(final String viewName) {
-    final List<KeySerializer> serializers = viewSerializers.get(viewName);
+    final List<KeySerializer> serializers = this.viewSerializers.get(viewName);
     if (serializers == null) {
       final List<String> elements = getKeyList(viewName);
       if (elements != null) {
@@ -1335,22 +1336,22 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     if (serializers == null) {
       serializers = getSerializers(defaultViewName);
       if (serializers != null) {
-        viewSerializers.put(viewName, serializers);
+        this.viewSerializers.put(viewName, serializers);
       }
     }
     return serializers;
   }
 
   public String getTitle() {
-    return title;
+    return this.title;
   }
 
   public String getTypeName() {
-    return typeName;
+    return this.typeName;
   }
 
   public boolean hasPageUrl(final String pageName) {
-    return pageUrls.containsKey(pageName);
+    return this.pageUrls.containsKey(pageName);
   }
 
   public void initializeForm(final HtmlUiBuilderObjectForm form,
@@ -1365,7 +1366,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   }
 
   public boolean isUsePathVariables() {
-    return usePathVariables;
+    return this.usePathVariables;
   }
 
   public T loadObject(final Object id) {
@@ -1438,7 +1439,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   /**
    * Serialize the value represented by the key from the object.
-   * 
+   *
    * @param out The XML writer to serialize to.
    * @param object The object to get the value from.
    * @param key The key to serialize.
@@ -1450,7 +1451,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     if (object == null) {
       serializeNullLabel(out, key);
     } else {
-      final Object serializer = keySerializers.get(key);
+      final Object serializer = this.keySerializers.get(key);
       if (serializer == null) {
         String path = null;
         String valueKey = key;
@@ -1477,7 +1478,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
           } catch (final IllegalArgumentException e) {
             final String message = currentObject.getClass().getName()
               + " does not have a property " + keyName;
-            log.error(e.getMessage(), e);
+            this.log.error(e.getMessage(), e);
             out.element(HtmlUtil.B, message);
             return;
           }
@@ -1491,7 +1492,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
                 serializeNullLabel(out, lastKey);
                 return;
               } else {
-                final TypeSerializer typeSerializer = classSerializers.get(value.getClass());
+                final TypeSerializer typeSerializer = this.classSerializers.get(value.getClass());
                 if (typeSerializer == null) {
                   final String stringValue = value.toString();
                   if (stringValue.length() > 0) {
@@ -1506,7 +1507,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
             } catch (final IllegalArgumentException e) {
               final String message = currentObject.getClass().getName()
                 + " does not have a property " + key;
-              log.error(e.getMessage(), e);
+              this.log.error(e.getMessage(), e);
               out.element(HtmlUtil.B, message);
               return;
             }
@@ -1536,7 +1537,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     final String key, final String pageName) {
     final Map<String, Object> parameters = new HashMap<String, Object>();
     final Object id = getIdValue(object);
-    parameters.put(idParameterName, id);
+    parameters.put(this.idParameterName, id);
     parameters.put(key, getProperty(object, key));
     final String url = getPageUrl(pageName, parameters);
     if (url == null) {
@@ -1556,7 +1557,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     final Map<String, Object> parameters = new HashMap<String, Object>();
     if (parameterKeys.isEmpty()) {
       final Object id = getIdValue(object);
-      parameters.put(idParameterName, id);
+      parameters.put(this.idParameterName, id);
     } else {
       for (final Entry<String, String> parameterKey : parameterKeys.entrySet()) {
         final String parameterName = parameterKey.getKey();
@@ -1582,7 +1583,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
   /**
    * Serialize the message where a key has no value. The default is the
    * character '-'.
-   * 
+   *
    * @param out The XML writer to serialize to.
    * @param key The key to serialize the no value message for.
    * @throws IOException If there was an I/O error serializing the value.
@@ -1608,7 +1609,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   /**
    * Set the factory used to get related HTML UI builders,
-   * 
+   *
    * @param builderFactory The factory.
    */
   public void setBuilderFactory(final HtmlUiBuilderFactory builderFactory) {
@@ -1643,17 +1644,17 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   /**
    * Set the key list with the specified name.
-   * 
+   *
    * @param name The name of the key list.
    * @param keyList<String> The key list.
    */
   public void setKeyList(final String name, final List<String> keyList) {
-    keyLists.put(name, keyList);
+    this.keyLists.put(name, keyList);
   }
 
   /**
    * Set the map of key lists.
-   * 
+   *
    * @param keyLists The map of key lists.
    */
   public void setKeyLists(final Map<String, List<String>> keyLists) {
@@ -1698,7 +1699,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public void setPages(final Collection<Page> pages) {
     for (final Page page : pages) {
-      pagesByName.put(page.getName(), page);
+      this.pagesByName.put(page.getName(), page);
     }
   }
 
@@ -1753,7 +1754,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public void setTypeName(final String typeName) {
     this.typeName = typeName;
-    if (idParameterName == null) {
+    if (this.idParameterName == null) {
       this.idParameterName = typeName + "Id";
     }
   }
@@ -1785,7 +1786,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
           serializer = (KeySerializer)element;
         } else {
           final String key = element.toString();
-          serializer = keySerializers.get(key);
+          serializer = this.keySerializers.get(key);
           if (serializer == null) {
             serializer = new BuilderSerializer(key, this);
           }

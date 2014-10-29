@@ -10,6 +10,7 @@ import javax.servlet.ServletContextListener;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.ClearCachedIntrospectionResults;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.web.util.Log4jWebConfigurer;
 
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.GeometryFactory;
@@ -31,7 +32,7 @@ public class ContextCleanupListener implements ServletContextListener {
             ((DisposableBean)attrValue).destroy();
           } catch (final Throwable e) {
             System.err.println("Couldn't invoke destroy method of attribute with name '"
-              + attrName + "'");
+                + attrName + "'");
           }
         } else {
           servletContext.removeAttribute(attrName);
@@ -40,9 +41,10 @@ public class ContextCleanupListener implements ServletContextListener {
     }
   }
 
+  @Override
   public void contextDestroyed(final ServletContextEvent event) {
     final ClassLoader contextClassLoader = Thread.currentThread()
-      .getContextClassLoader();
+        .getContextClassLoader();
     IoFactoryRegistry.clearInstance();
     JdbcFactoryRegistry.clearInstance();
     StringConverterRegistry.clearInstance();
@@ -57,7 +59,9 @@ public class ContextCleanupListener implements ServletContextListener {
     Introspector.flushCaches();
   }
 
+  @Override
   public void contextInitialized(final ServletContextEvent event) {
+    Log4jWebConfigurer.initLogging(event.getServletContext());
     CachedIntrospectionResults.acceptClassLoader(Thread.currentThread()
       .getContextClassLoader());
   }

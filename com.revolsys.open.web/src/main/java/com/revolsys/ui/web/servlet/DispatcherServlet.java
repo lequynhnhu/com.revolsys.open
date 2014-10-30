@@ -9,12 +9,13 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
 
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 public class DispatcherServlet extends
-  org.springframework.web.servlet.DispatcherServlet {
+org.springframework.web.servlet.DispatcherServlet {
   private static final Logger LOG = LoggerFactory.getLogger(DispatcherServlet.class);
 
   @Override
@@ -44,6 +45,14 @@ public class DispatcherServlet extends
       request.removeAttribute(WebUtils.INCLUDE_QUERY_STRING_ATTRIBUTE);
       request.removeAttribute(WebUtils.INCLUDE_REQUEST_URI_ATTRIBUTE);
       request.removeAttribute(WebUtils.INCLUDE_SERVLET_PATH_ATTRIBUTE);
+    } catch (final NestedServletException e) {
+      final Throwable cause = e.getCause();
+      if (cause instanceof AccessDeniedException) {
+        throw (AccessDeniedException)cause;
+      } else {
+        LOG.error(e.getMessage(), e);
+      }
+      throw e;
     } catch (final AccessDeniedException e) {
       throw e;
     } catch (final Exception e) {

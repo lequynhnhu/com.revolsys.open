@@ -7,14 +7,14 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>TRUNK-SNAPSHOT</version>
+    <version>0.20141105.103015-GBA_2_0_0</version>
   </parent>
   
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.revolsys.open</groupId>
   <artifactId>tests</artifactId>
   <name>GIS Tools</name>
-  <version>TRUNK-SNAPSHOT</version>
+  <version>0.20141105.103015-GBA_2_0_0</version>
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>

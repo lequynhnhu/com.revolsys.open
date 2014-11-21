@@ -1,12 +1,12 @@
 /*
  * Copyright 2004-2005 Revolution Systems Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -50,31 +51,31 @@ public abstract class Field extends Element {
 
   public void addValidationError(final String error) {
     if (!hasValidationErrors()) {
-      validationErrors = new ArrayList<String>();
+      this.validationErrors = new ArrayList<String>();
     }
-    validationErrors.add(error);
+    this.validationErrors.add(error);
   }
 
   public String getDefaultInstructions() {
-    return defaultInstructions;
+    return this.defaultInstructions;
   }
 
   /**
    * @return Returns the initialValue.
    */
   public Object getInitialValue() {
-    return initialValue;
+    return this.initialValue;
   }
 
   public <T> T getInitialValue(final HttpServletRequest request) {
     final ElementContainer container = getContainer();
     if (container == null) {
-      return (T)initialValue;
+      return (T)this.initialValue;
     } else {
       final T value = (T)container.getInitialValue(this, request);
 
       if (value == null) {
-        return (T)initialValue;
+        return (T)this.initialValue;
       } else {
         return value;
       }
@@ -82,23 +83,27 @@ public abstract class Field extends Element {
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 
   public List<String> getValidationErrors() {
-    return validationErrors;
+    return this.validationErrors;
   }
 
   public <T> T getValue() {
-    return (T)value;
+    return (T)this.value;
+  }
+
+  public <T> T getValue(final Class<T> valueClass) {
+    return StringConverterRegistry.toObject(valueClass, getValue());
   }
 
   public boolean hasValidationErrors() {
-    return validationErrors != Collections.EMPTY_LIST;
+    return this.validationErrors != Collections.EMPTY_LIST;
   }
 
   public boolean hasValue() {
-    return value != null;
+    return this.value != null;
   }
 
   public abstract void initialize(Form form, HttpServletRequest request);
@@ -107,11 +112,11 @@ public abstract class Field extends Element {
    * @return Returns the readOnly.
    */
   public final boolean isReadOnly() {
-    return readOnly;
+    return this.readOnly;
   }
 
   public boolean isRequired() {
-    return required;
+    return this.required;
   }
 
   public boolean isValid() {

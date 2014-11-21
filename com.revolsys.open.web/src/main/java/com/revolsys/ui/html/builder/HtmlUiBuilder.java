@@ -115,7 +115,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public static boolean isDataTableCallback() {
     return HttpServletUtils.getParameter("_") != null
-        && HttpServletUtils.getParameter("callback") == null;
+      && HttpServletUtils.getParameter("callback") == null;
   }
 
   public static boolean isDataTableCallback(final HttpServletRequest request) {
@@ -242,6 +242,9 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public void addKeySerializer(final KeySerializer keySerializer) {
     this.keySerializers.put(keySerializer.getName(), keySerializer);
+  }
+
+  protected void addListMenuItems(final Menu menu, final String prefix) {
   }
 
   public void addMenuElement(final ElementContainer container, final Menu menu) {
@@ -465,8 +468,8 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     final Script script = new Script();
     String jsonMap = JsonMapIoFactory.toString(tableParams);
     jsonMap = jsonMap.substring(0, jsonMap.length() - 1)
-        + ",\"createdRow\": function( row, data, dataIndex ) {refreshButtons(row);}"
-        + ",\"initComplete\": function() {$(this).DataTable().columns.adjust();}";
+      + ",\"createdRow\": function( row, data, dataIndex ) {refreshButtons(row);}"
+      + ",\"initComplete\": function() {$(this).DataTable().columns.adjust();}";
     jsonMap += "}";
     final StringBuffer scriptBody = new StringBuffer();
     scriptBody.append("$(document).ready(function() {\n");
@@ -487,6 +490,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     final String prefix = pageName.replaceAll("[lL]ist$", "");
     final Menu actionMenu = new Menu();
     addMenuItem(actionMenu, prefix, "add", "Add", "_top");
+    addListMenuItems(actionMenu, prefix);
     addMenuElement(container, actionMenu);
 
     return container;
@@ -607,7 +611,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     try {
       final int numRecords = pager.getNumResults();
       int pageSize = HttpServletUtils.getIntegerParameter(request,
-          "iDisplayLength");
+        "iDisplayLength");
       if (pageSize < 0) {
         pageSize = numRecords;
       } else if (pageSize == 0) {
@@ -616,7 +620,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       pager.setPageSize(pageSize);
 
       final int recordNumber = HttpServletUtils.getIntegerParameter(request,
-          "iDisplayStart");
+        "iDisplayStart");
       final int pageNumber = (int)Math.floor(recordNumber / (double)pageSize) + 1;
       pager.setPageNumber(pageNumber);
 
@@ -656,7 +660,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       serializers);
     model.setObject(object);
     final DetailView detailView = new DetailView(model, "objectView "
-        + this.typeName);
+      + this.typeName);
     return new ElementContainer(detailView);
   }
 
@@ -750,14 +754,14 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       + "').submit()"));
 
     final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
+      "actionMenu");
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;
   }
 
   public Element createObjectEditPage(final T object, final String prefix)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     if (object == null) {
       throw new PageNotFoundException();
     } else {
@@ -805,7 +809,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         + "').submit()"));
 
       final MenuElement actionMenuElement = new MenuElement(actionMenu,
-          "actionMenu");
+        "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
       view.setDecorator(new CollapsibleBox(title, true));
@@ -815,7 +819,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public ElementContainer createObjectViewPage(final Object object,
     final String prefix, final boolean collapsible)
-        throws NoSuchRequestHandlingMethodException {
+    throws NoSuchRequestHandlingMethodException {
     if (object == null) {
       throw new PageNotFoundException();
     } else {
@@ -1461,7 +1465,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
             uiBuilder = getBuilder(currentObject);
           } catch (final IllegalArgumentException e) {
             final String message = currentObject.getClass().getName()
-                + " does not have a property " + keyName;
+              + " does not have a property " + keyName;
             this.log.error(e.getMessage(), e);
             out.element(HtmlUtil.B, message);
             return;
@@ -1490,7 +1494,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
               }
             } catch (final IllegalArgumentException e) {
               final String message = currentObject.getClass().getName()
-                  + " does not have a property " + key;
+                + " does not have a property " + key;
               this.log.error(e.getMessage(), e);
               out.element(HtmlUtil.B, message);
               return;

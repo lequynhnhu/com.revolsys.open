@@ -32,14 +32,6 @@ import com.sun.javadoc.WildcardType;
 
 public class DocletUtil {
 
-  private static final Map<String, String> PACKAGE_URLS = new LinkedHashMap<String, String>();
-
-  static {
-    addPackageUrl("java.", "http://docs.oracle.com/javase/6/docs/api/");
-    addPackageUrl("com.revolsys.jts.",
-      "http://tsusiatsoftware.net/jts/javadoc/");
-  }
-
   public static void addPackageUrl(final String packagePrefix, final String url) {
     PACKAGE_URLS.put(packagePrefix, url);
   }
@@ -161,7 +153,7 @@ public class DocletUtil {
       if (qualifiedTypeName.startsWith(packagePrefix)) {
         final String baseUrl = entry.getValue();
         final String url = baseUrl + qualifiedTypeName.replaceAll("\\.", "/")
-          + ".html?is-external=true";
+            + ".html?is-external=true";
         return url;
       }
     }
@@ -196,19 +188,21 @@ public class DocletUtil {
     writer.element(HtmlUtil.TITLE, docTitle);
     HtmlUtil.serializeCss(
       writer,
-      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
+      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/cupertino/jquery-ui.css");
     HtmlUtil.serializeCss(
       writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/cupertino/jquery-ui.css");
+      "https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css");
     HtmlUtil.serializeCss(writer, "prettify.css");
     HtmlUtil.serializeCss(writer, "javadoc.css");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js");
+        "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js");
     HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js");
+        "https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js");
+    HtmlUtil.serializeScriptLink(writer,
+        "https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js");
     HtmlUtil.serializeScriptLink(
       writer,
-      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
+      "https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js");
     HtmlUtil.serializeScriptLink(writer, "prettify.js");
     HtmlUtil.serializeScriptLink(writer, "javadoc.js");
     writer.endTagLn(HtmlUtil.HEAD);
@@ -218,8 +212,8 @@ public class DocletUtil {
     final ClassDoc classDoc = type.asClassDoc();
     final ClassDoc annotationDoc = type.asAnnotationTypeDoc();
     final boolean included = annotationDoc != null
-      && annotationDoc.isIncluded() || classDoc != null
-      && classDoc.isIncluded();
+        && annotationDoc.isIncluded() || classDoc != null
+        && classDoc.isIncluded();
     return included;
   }
 
@@ -339,7 +333,7 @@ public class DocletUtil {
               if (referencedMemberName.indexOf('(') < 0) {
                 final ExecutableMemberDoc executableDoc = (ExecutableMemberDoc)referencedMember;
                 referencedMemberName = referencedMemberName
-                  + executableDoc.signature();
+                    + executableDoc.signature();
               }
               if (StringUtils.hasText(referencedMemberName)) {
                 label = referencedMemberName;
@@ -448,5 +442,13 @@ public class DocletUtil {
       }
     }
     writer.text(type.dimension());
+  }
+
+  private static final Map<String, String> PACKAGE_URLS = new LinkedHashMap<String, String>();
+
+  static {
+    addPackageUrl("java.", "http://docs.oracle.com/javase/6/docs/api/");
+    addPackageUrl("com.revolsys.jts.",
+        "http://tsusiatsoftware.net/jts/javadoc/");
   }
 }

@@ -35,8 +35,8 @@ public class RestDoclet {
   public static int optionLength(String optionName) {
     optionName = optionName.toLowerCase();
     if (optionName.equals("-d") || optionName.equals("-doctitle")
-      || optionName.equals("-docid") || optionName.equals("-htmlfooter")
-      || optionName.equals("-htmlheader")) {
+        || optionName.equals("-docid") || optionName.equals("-htmlfooter")
+        || optionName.equals("-htmlheader")) {
       return 2;
     }
     return -1;
@@ -61,11 +61,11 @@ public class RestDoclet {
         }
         if (!file.isDirectory()) {
           docerrorreporter.printError("Destination not a directory"
-            + file.getPath());
+              + file.getPath());
           return false;
         } else if (!file.canWrite()) {
           docerrorreporter.printError("Destination directory not writable "
-            + file.getPath());
+              + file.getPath());
           return false;
         }
       } else if (argName.equals("-htmlheader")) {
@@ -114,15 +114,15 @@ public class RestDoclet {
   }
 
   public void documentation() {
-    writer.startTag(HtmlUtil.DIV);
-    writer.attribute(HtmlUtil.ATTR_CLASS, "javaPackage open");
+    this.writer.startTag(HtmlUtil.DIV);
+    this.writer.attribute(HtmlUtil.ATTR_CLASS, "javaPackage open");
 
-    HtmlUtil.elementWithId(writer, HtmlUtil.H1, docId, docTitle);
-    DocletUtil.description(writer, null, root);
-    for (final PackageDoc packageDoc : root.specifiedPackages()) {
+    HtmlUtil.elementWithId(this.writer, HtmlUtil.H1, this.docId, this.docTitle);
+    DocletUtil.description(this.writer, null, this.root);
+    for (final PackageDoc packageDoc : this.root.specifiedPackages()) {
 
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "content");
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "content");
       final Map<String, ClassDoc> classes = new TreeMap<String, ClassDoc>();
       for (final ClassDoc classDoc : packageDoc.ordinaryClasses()) {
         classes.put(classDoc.name(), classDoc);
@@ -131,55 +131,55 @@ public class RestDoclet {
         documentationClass(classDoc);
       }
     }
-    writer.endTag(HtmlUtil.DIV);
-    writer.endTag(HtmlUtil.DIV);
+    this.writer.endTag(HtmlUtil.DIV);
+    this.writer.endTag(HtmlUtil.DIV);
   }
 
   public void documentationClass(final ClassDoc classDoc) {
     if (DocletUtil.hasAnnotation(classDoc,
-      "org.springframework.stereotype.Controller")) {
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "javaClass open");
+        "org.springframework.stereotype.Controller")) {
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "javaClass open");
 
       final String id = DocletUtil.qualifiedName(classDoc);
       final String name = classDoc.name();
       final String title = CaseConverter.toCapitalizedWords(name);
-      HtmlUtil.elementWithId(writer, HtmlUtil.H2, id, title);
+      HtmlUtil.elementWithId(this.writer, HtmlUtil.H2, id, title);
 
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "content");
-      DocletUtil.description(writer, classDoc, classDoc);
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "content");
+      DocletUtil.description(this.writer, classDoc, classDoc);
       documentationMethod(classDoc);
-      writer.endTag(HtmlUtil.DIV);
+      this.writer.endTag(HtmlUtil.DIV);
 
-      writer.endTag(HtmlUtil.DIV);
+      this.writer.endTag(HtmlUtil.DIV);
     }
   }
 
   public void documentationMethod(final ClassDoc classDoc) {
     for (final MethodDoc method : classDoc.methods()) {
       final AnnotationDesc requestMapping = DocletUtil.getAnnotation(method,
-        "org.springframework.web.bind.annotation.RequestMapping");
+          "org.springframework.web.bind.annotation.RequestMapping");
       if (requestMapping != null) {
-        writer.startTag(HtmlUtil.DIV);
-        writer.attribute(HtmlUtil.ATTR_CLASS, "javaMethod");
+        this.writer.startTag(HtmlUtil.DIV);
+        this.writer.attribute(HtmlUtil.ATTR_CLASS, "javaMethod");
 
         final String name = method.name();
         final String id = DocletUtil.qualifiedName(classDoc) + "." + name;
         final String title = CaseConverter.toCapitalizedWords(name);
-        HtmlUtil.elementWithId(writer, HtmlUtil.H3, id, title);
+        HtmlUtil.elementWithId(this.writer, HtmlUtil.H3, id, title);
 
-        writer.startTag(HtmlUtil.DIV);
-        writer.attribute(HtmlUtil.ATTR_CLASS, "content");
-        DocletUtil.description(writer, method.containingClass(), method);
+        this.writer.startTag(HtmlUtil.DIV);
+        this.writer.attribute(HtmlUtil.ATTR_CLASS, "content");
+        DocletUtil.description(this.writer, method.containingClass(), method);
         requestMethods(requestMapping);
         uriTemplates(requestMapping);
         uriTemplateParameters(method);
         parameters(method);
         responseStatus(method);
-        writer.endTag(HtmlUtil.DIV);
+        this.writer.endTag(HtmlUtil.DIV);
 
-        writer.endTag(HtmlUtil.DIV);
+        this.writer.endTag(HtmlUtil.DIV);
       }
     }
   }
@@ -195,74 +195,53 @@ public class RestDoclet {
     return null;
   }
 
-  public void head() {
-    writer.startTag(HtmlUtil.HEAD);
-    writer.element(HtmlUtil.TITLE, docTitle);
-    HtmlUtil.serializeCss(
-      writer,
-      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css");
-    HtmlUtil.serializeCss(
-      writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/cupertino/jquery-ui.css");
-    HtmlUtil.serializeCss(writer, "javadoc.css");
-    HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js");
-    HtmlUtil.serializeScriptLink(writer,
-      "https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js");
-    HtmlUtil.serializeScriptLink(
-      writer,
-      "https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js");
-    HtmlUtil.serializeScriptLink(writer, "javadoc.js");
-    writer.endTag(HtmlUtil.HEAD);
-  }
-
   private void parameters(final MethodDoc method) {
     final List<Parameter> parameters = new ArrayList<Parameter>();
     for (final Parameter parameter : method.parameters()) {
       final AnnotationDesc[] annotations = parameter.annotations();
       if (DocletUtil.hasAnnotation(annotations,
-        "org.springframework.web.bind.annotation.RequestParam")
-        || DocletUtil.hasAnnotation(annotations,
-          "org.springframework.web.bind.annotation.RequestBody")) {
+          "org.springframework.web.bind.annotation.RequestParam")
+          || DocletUtil.hasAnnotation(annotations,
+              "org.springframework.web.bind.annotation.RequestBody")) {
         parameters.add(parameter);
       }
     }
     if (!parameters.isEmpty()) {
       final Map<String, Tag[]> descriptions = DocletUtil.getParameterDescriptions(method);
 
-      writer.element(HtmlUtil.H4, "Parameters");
-      writer.element(
+      this.writer.element(HtmlUtil.H4, "Parameters");
+      this.writer.element(
         HtmlUtil.P,
         "The resource supports the following parameters. "
-          + "For HTTP get requests these must be specified using query string parameters. "
-          + "For HTTP POST requests these can be specified using query string, application/x-www-form-urlencoded parameters or multipart/form-data unless otherwise specified. "
-          + "Array values [] can be specified by including the parameter multiple times in the request.");
+            + "For HTTP get requests these must be specified using query string parameters. "
+            + "For HTTP POST requests these can be specified using query string, application/x-www-form-urlencoded parameters or multipart/form-data unless otherwise specified. "
+            + "Array values [] can be specified by including the parameter multiple times in the request.");
 
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
-      writer.startTag(HtmlUtil.TABLE);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "data");
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
+      this.writer.startTag(HtmlUtil.TABLE);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "data");
 
-      writer.startTag(HtmlUtil.THEAD);
-      writer.startTag(HtmlUtil.TR);
-      writer.element(HtmlUtil.TH, "Parameter");
-      writer.element(HtmlUtil.TH, "Type");
-      writer.element(HtmlUtil.TH, "Default");
-      writer.element(HtmlUtil.TH, "Required");
-      writer.element(HtmlUtil.TH, "Description");
-      writer.endTag(HtmlUtil.TR);
-      writer.endTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.TR);
+      this.writer.element(HtmlUtil.TH, "Parameter");
+      this.writer.element(HtmlUtil.TH, "Type");
+      this.writer.element(HtmlUtil.TH, "Default");
+      this.writer.element(HtmlUtil.TH, "Required");
+      this.writer.element(HtmlUtil.TH, "Description");
+      this.writer.endTag(HtmlUtil.TR);
+      this.writer.endTag(HtmlUtil.THEAD);
 
-      writer.startTag(HtmlUtil.TBODY);
+      this.writer.startTag(HtmlUtil.TBODY);
       for (final Parameter parameter : parameters) {
-        writer.startTag(HtmlUtil.TR);
+        this.writer.startTag(HtmlUtil.TR);
         final String name = parameter.name();
         final AnnotationDesc requestParam = DocletUtil.getAnnotation(
           parameter.annotations(),
-          "org.springframework.web.bind.annotation.RequestParam");
+            "org.springframework.web.bind.annotation.RequestParam");
         final AnnotationDesc requestBody = DocletUtil.getAnnotation(
           parameter.annotations(),
-          "org.springframework.web.bind.annotation.RequestBody");
+            "org.springframework.web.bind.annotation.RequestBody");
         String paramName = name;
         String defaultValue = "-";
         String typeName = parameter.typeName();
@@ -282,7 +261,7 @@ public class RestDoclet {
             defaultValue = "-";
           }
           required = Boolean.FALSE != (Boolean)getElementValue(requestParam,
-            "required");
+              "required");
         }
         if (requestBody != null) {
           required = true;
@@ -290,47 +269,47 @@ public class RestDoclet {
           typeName = "binary/character data";
         }
 
-        writer.startTag(HtmlUtil.TD);
-        writer.startTag(HtmlUtil.CODE);
-        writer.text(paramName);
-        writer.endTag(HtmlUtil.CODE);
-        writer.endTag(HtmlUtil.TD);
+        this.writer.startTag(HtmlUtil.TD);
+        this.writer.startTag(HtmlUtil.CODE);
+        this.writer.text(paramName);
+        this.writer.endTag(HtmlUtil.CODE);
+        this.writer.endTag(HtmlUtil.TD);
 
-        writer.startTag(HtmlUtil.TD);
-        writer.startTag(HtmlUtil.CODE);
-        writer.text(typeName);
-        writer.endTag(HtmlUtil.CODE);
-        writer.endTag(HtmlUtil.TD);
+        this.writer.startTag(HtmlUtil.TD);
+        this.writer.startTag(HtmlUtil.CODE);
+        this.writer.text(typeName);
+        this.writer.endTag(HtmlUtil.CODE);
+        this.writer.endTag(HtmlUtil.TD);
 
-        writer.element(HtmlUtil.TD, defaultValue);
+        this.writer.element(HtmlUtil.TD, defaultValue);
         if (required) {
-          writer.element(HtmlUtil.TD, "Yes");
+          this.writer.element(HtmlUtil.TD, "Yes");
         } else {
-          writer.element(HtmlUtil.TD, "No");
+          this.writer.element(HtmlUtil.TD, "No");
         }
-        DocletUtil.descriptionTd(writer, method.containingClass(),
+        DocletUtil.descriptionTd(this.writer, method.containingClass(),
           descriptions, name);
-        writer.endTag(HtmlUtil.TR);
+        this.writer.endTag(HtmlUtil.TR);
       }
-      writer.endTag(HtmlUtil.TBODY);
+      this.writer.endTag(HtmlUtil.TBODY);
 
-      writer.endTag(HtmlUtil.TABLE);
-      writer.endTag(HtmlUtil.DIV);
+      this.writer.endTag(HtmlUtil.TABLE);
+      this.writer.endTag(HtmlUtil.DIV);
     }
   }
 
   private void requestMethods(final AnnotationDesc requestMapping) {
     final AnnotationValue[] methods = getElementValue(requestMapping, "method");
     if (methods != null && methods.length > 0) {
-      writer.element(HtmlUtil.H4, "HTTP Request Methods");
-      writer.element(HtmlUtil.P,
-        "The resource can be accessed using the following HTTP request methods.");
-      writer.startTag(HtmlUtil.UL);
+      this.writer.element(HtmlUtil.H4, "HTTP Request Methods");
+      this.writer.element(HtmlUtil.P,
+          "The resource can be accessed using the following HTTP request methods.");
+      this.writer.startTag(HtmlUtil.UL);
       for (final AnnotationValue value : methods) {
         final FieldDoc method = (FieldDoc)value.value();
-        writer.element(HtmlUtil.LI, method.name());
+        this.writer.element(HtmlUtil.LI, method.name());
       }
-      writer.endTag(HtmlUtil.UL);
+      this.writer.endTag(HtmlUtil.UL);
     }
   }
 
@@ -354,45 +333,45 @@ public class RestDoclet {
       responseStatusDescriptions,
       "500",
       "<p><b>Internal Server Error</b></p>"
-        + "<p>This error indicates that there was an unexpected error on the server. "
-        + "This is sometimes temporary so try again after a few minutes. "
-        + "The problem could also be caused by bad input data so verify all input parameters and files. "
-        + "If the problem persists contact the support desk with exact details of the parameters you were using.</p>");
+          + "<p>This error indicates that there was an unexpected error on the server. "
+          + "This is sometimes temporary so try again after a few minutes. "
+          + "The problem could also be caused by bad input data so verify all input parameters and files. "
+          + "If the problem persists contact the support desk with exact details of the parameters you were using.</p>");
     if (!responseStatusDescriptions.isEmpty()) {
-      writer.element(HtmlUtil.H4, "HTTP Status Codes");
-      writer.element(
+      this.writer.element(HtmlUtil.H4, "HTTP Status Codes");
+      this.writer.element(
         HtmlUtil.P,
-        "The resource will return one of the following status codes. The HTML error page may include an error message. The descriptions of the messages and the cause are described below.");
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
+          "The resource will return one of the following status codes. The HTML error page may include an error message. The descriptions of the messages and the cause are described below.");
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
 
-      writer.startTag(HtmlUtil.TABLE);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "data");
+      this.writer.startTag(HtmlUtil.TABLE);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "data");
 
-      writer.startTag(HtmlUtil.THEAD);
-      writer.startTag(HtmlUtil.TR);
-      writer.element(HtmlUtil.TH, "HTTP Status Code");
-      writer.element(HtmlUtil.TH, "Description");
-      writer.endTag(HtmlUtil.TR);
-      writer.endTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.TR);
+      this.writer.element(HtmlUtil.TH, "HTTP Status Code");
+      this.writer.element(HtmlUtil.TH, "Description");
+      this.writer.endTag(HtmlUtil.TR);
+      this.writer.endTag(HtmlUtil.THEAD);
 
-      writer.startTag(HtmlUtil.TBODY);
+      this.writer.startTag(HtmlUtil.TBODY);
       for (final Entry<String, List<String>> entry : responseStatusDescriptions.entrySet()) {
         final String code = entry.getKey();
         for (final String message : entry.getValue()) {
-          writer.startTag(HtmlUtil.TR);
-          writer.element(HtmlUtil.TD, code);
-          writer.startTag(HtmlUtil.TD);
-          writer.write(message);
-          writer.endTag(HtmlUtil.TD);
+          this.writer.startTag(HtmlUtil.TR);
+          this.writer.element(HtmlUtil.TD, code);
+          this.writer.startTag(HtmlUtil.TD);
+          this.writer.write(message);
+          this.writer.endTag(HtmlUtil.TD);
 
-          writer.endTag(HtmlUtil.TR);
+          this.writer.endTag(HtmlUtil.TR);
         }
       }
-      writer.endTag(HtmlUtil.TBODY);
+      this.writer.endTag(HtmlUtil.TBODY);
 
-      writer.endTag(HtmlUtil.TABLE);
-      writer.endTag(HtmlUtil.DIV);
+      this.writer.endTag(HtmlUtil.TABLE);
+      this.writer.endTag(HtmlUtil.DIV);
     }
   }
 
@@ -400,24 +379,24 @@ public class RestDoclet {
     for (final String[] option : options) {
       final String optionName = option[0];
       if (optionName.equals("-d")) {
-        destDir = option[1];
+        this.destDir = option[1];
 
       } else if (optionName.equals("-doctitle")) {
-        docTitle = option[1];
+        this.docTitle = option[1];
       } else if (optionName.equals("-docid")) {
-        docId = option[1];
+        this.docId = option[1];
       } else if (optionName.equals("-htmlheader")) {
-        header = FileUtil.getFileAsString(option[1]);
+        this.header = FileUtil.getFileAsString(option[1]);
       } else if (optionName.equals("-htmlfooter")) {
-        footer = FileUtil.getFileAsString(option[1]);
+        this.footer = FileUtil.getFileAsString(option[1]);
       }
     }
     try {
-      final File dir = new File(destDir);
+      final File dir = new File(this.destDir);
       final File indexFile = new File(dir, "index.html");
       final FileWriter out = new FileWriter(indexFile);
-      writer = new XmlWriter(out, false);
-      DocletUtil.copyFiles(destDir);
+      this.writer = new XmlWriter(out, false);
+      DocletUtil.copyFiles(this.destDir);
     } catch (final IOException e) {
       throw new IllegalArgumentException(e.fillInStackTrace().getMessage(), e);
     }
@@ -425,37 +404,37 @@ public class RestDoclet {
 
   private void start() {
     try {
-      setOptions(root.options());
+      setOptions(this.root.options());
 
-      if (header == null) {
-        writer.startDocument("UTF-8", "1.0");
-        writer.docType("html", null);
-        writer.startTag(HtmlUtil.HTML);
-        writer.attribute(HtmlUtil.ATTR_LANG, "en");
+      if (this.header == null) {
+        this.writer.startDocument("UTF-8", "1.0");
+        this.writer.docType("html", null);
+        this.writer.startTag(HtmlUtil.HTML);
+        this.writer.attribute(HtmlUtil.ATTR_LANG, "en");
 
-        head();
-        writer.startTag(HtmlUtil.BODY);
+        DocletUtil.head(this.writer, this.docTitle);
+        this.writer.startTag(HtmlUtil.BODY);
       } else {
-        header = header.replaceAll("\\$\\{docTitle\\}", docTitle);
-        header = header.replaceAll("\\$\\{docId\\}", docId);
-        writer.write(header);
+        this.header = this.header.replaceAll("\\$\\{docTitle\\}", this.docTitle);
+        this.header = this.header.replaceAll("\\$\\{docId\\}", this.docId);
+        this.writer.write(this.header);
       }
 
       documentation();
 
-      if (footer == null) {
-        writer.endTag(HtmlUtil.BODY);
+      if (this.footer == null) {
+        this.writer.endTag(HtmlUtil.BODY);
 
-        writer.endTag(HtmlUtil.HTML);
+        this.writer.endTag(HtmlUtil.HTML);
       } else {
-        footer = footer.replaceAll("\\$\\{docTitle\\}", docTitle);
-        footer = footer.replaceAll("\\$\\{docId\\}", docId);
-        writer.write(footer);
+        this.footer = this.footer.replaceAll("\\$\\{docTitle\\}", this.docTitle);
+        this.footer = this.footer.replaceAll("\\$\\{docId\\}", this.docId);
+        this.writer.write(this.footer);
       }
-      writer.endDocument();
+      this.writer.endDocument();
     } finally {
-      if (writer != null) {
-        writer.close();
+      if (this.writer != null) {
+        this.writer.close();
       }
     }
   }
@@ -464,59 +443,59 @@ public class RestDoclet {
     final List<Parameter> parameters = new ArrayList<Parameter>();
     for (final Parameter parameter : method.parameters()) {
       if (DocletUtil.hasAnnotation(parameter.annotations(),
-        "org.springframework.web.bind.annotation.PathVariable")) {
+          "org.springframework.web.bind.annotation.PathVariable")) {
         parameters.add(parameter);
       }
     }
     if (!parameters.isEmpty()) {
       final Map<String, Tag[]> descriptions = DocletUtil.getParameterDescriptions(method);
-      writer.element(HtmlUtil.H4, "URI Template Parameters");
-      writer.element(
+      this.writer.element(HtmlUtil.H4, "URI Template Parameters");
+      this.writer.element(
         HtmlUtil.P,
-        "The URI templates support the following parameters which must be replaced with values as described below.");
-      writer.startTag(HtmlUtil.DIV);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
+          "The URI templates support the following parameters which must be replaced with values as described below.");
+      this.writer.startTag(HtmlUtil.DIV);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "simpleDataTable");
 
-      writer.startTag(HtmlUtil.TABLE);
-      writer.attribute(HtmlUtil.ATTR_CLASS, "data");
+      this.writer.startTag(HtmlUtil.TABLE);
+      this.writer.attribute(HtmlUtil.ATTR_CLASS, "data");
 
-      writer.startTag(HtmlUtil.THEAD);
-      writer.startTag(HtmlUtil.TR);
-      writer.element(HtmlUtil.TH, "Parameter");
-      writer.element(HtmlUtil.TH, "Type");
-      writer.element(HtmlUtil.TH, "Description");
-      writer.endTag(HtmlUtil.TR);
-      writer.endTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.THEAD);
+      this.writer.startTag(HtmlUtil.TR);
+      this.writer.element(HtmlUtil.TH, "Parameter");
+      this.writer.element(HtmlUtil.TH, "Type");
+      this.writer.element(HtmlUtil.TH, "Description");
+      this.writer.endTag(HtmlUtil.TR);
+      this.writer.endTag(HtmlUtil.THEAD);
 
-      writer.startTag(HtmlUtil.TBODY);
+      this.writer.startTag(HtmlUtil.TBODY);
       for (final Parameter parameter : parameters) {
-        writer.startTag(HtmlUtil.TR);
+        this.writer.startTag(HtmlUtil.TR);
         final String name = parameter.name();
-        writer.element(HtmlUtil.TD, "{" + name + "}");
-        writer.element(HtmlUtil.TD, parameter.typeName());
-        DocletUtil.descriptionTd(writer, method.containingClass(),
+        this.writer.element(HtmlUtil.TD, "{" + name + "}");
+        this.writer.element(HtmlUtil.TD, parameter.typeName());
+        DocletUtil.descriptionTd(this.writer, method.containingClass(),
           descriptions, name);
 
-        writer.endTag(HtmlUtil.TR);
+        this.writer.endTag(HtmlUtil.TR);
       }
-      writer.endTag(HtmlUtil.TBODY);
+      this.writer.endTag(HtmlUtil.TBODY);
 
-      writer.endTag(HtmlUtil.TABLE);
-      writer.endTag(HtmlUtil.DIV);
+      this.writer.endTag(HtmlUtil.TABLE);
+      this.writer.endTag(HtmlUtil.DIV);
     }
   }
 
   public void uriTemplates(final AnnotationDesc requestMapping) {
     final AnnotationValue[] uriTemplates = getElementValue(requestMapping,
-      "value");
+        "value");
     if (uriTemplates.length > 0) {
-      writer.element(HtmlUtil.H4, "URI Templates");
-      writer.element(
+      this.writer.element(HtmlUtil.H4, "URI Templates");
+      this.writer.element(
         HtmlUtil.P,
-        "The URI templates define the paths that can be appended to the base URL of the service to access this resource.");
+          "The URI templates define the paths that can be appended to the base URL of the service to access this resource.");
 
       for (final AnnotationValue uriTemplate : uriTemplates) {
-        writer.element(HtmlUtil.PRE, uriTemplate.value());
+        this.writer.element(HtmlUtil.PRE, uriTemplate.value());
       }
     }
   }

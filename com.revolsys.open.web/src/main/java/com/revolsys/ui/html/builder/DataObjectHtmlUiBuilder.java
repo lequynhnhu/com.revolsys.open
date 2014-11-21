@@ -1,5 +1,6 @@
 package com.revolsys.ui.html.builder;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +26,7 @@ import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 
 public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
 
@@ -95,24 +97,31 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
 
   protected Map<String, Object> createDataTableMap(
     final HttpServletRequest request, final String pageName, final Query query) {
-    final String search = request.getParameter("sSearch");
-    if (StringUtils.hasText(search)) {
-      final List<KeySerializer> serializers = getSerializers(pageName, "list");
-      final Or or = new Or();
-      final int numSortColumns = HttpServletUtils.getIntegerParameter(request,
-        "iColumns");
-      for (int i = 0; i < numSortColumns; i++) {
-        if (HttpServletUtils.getBooleanParameter(request, "bSearchable_" + i)) {
-          final KeySerializer serializer = serializers.get(i);
-          final String columnName = JavaBeanUtil.getFirstName(serializer.getKey());
-          or.add(Conditions.iLike("T." + columnName, search));
+    final String search = request.getParameter("search[value]");
+    final List<String> columnNames = new ArrayList<>();
+    final List<KeySerializer> serializers = getSerializers(pageName, "list");
+    final Or or = new Or();
+    for (int i = 0;; i++) {
+      final String name = request.getParameter("columns[" + i + "][name]");
+      if (Property.hasValue(name)) {
+        final KeySerializer serializer = serializers.get(i);
+        final String columnName = JavaBeanUtil.getFirstName(serializer.getKey());
+        columnNames.add(columnName);
+        if (StringUtils.hasText(search)) {
+          if (HttpServletUtils.getBooleanParameter(request, "columns[" + i
+            + "][searchable]")) {
+            or.add(Conditions.iLike("T." + columnName, search));
+          }
         }
-      }
-      if (!or.isEmpty()) {
-        query.and(or);
+      } else {
+        break;
       }
     }
-    final Map<String, Boolean> orderBy = getDataTableSortOrder(request);
+    if (!or.isEmpty()) {
+      query.and(or);
+    }
+    final Map<String, Boolean> orderBy = getDataTableSortOrder(columnNames,
+      request);
     query.setOrderBy(orderBy);
     final ResultPager<DataObject> pager = getResultPager(query);
     try {
@@ -130,13 +139,13 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
 
   @Override
   protected DataObject createObject() {
-    return dataStore.create(tableName);
+    return this.dataStore.create(this.tableName);
   }
 
   public void deleteObject(final Object id) {
     final DataObject object = loadObject(id);
     if (object != null) {
-      dataStore.delete(object);
+      this.dataStore.delete(object);
     }
   }
 
@@ -144,12 +153,12 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
   @PreDestroy
   public void destroy() {
     super.destroy();
-    dataStore = null;
-    tableName = null;
+    this.dataStore = null;
+    this.tableName = null;
   }
 
   public DataObjectStore getDataStore() {
-    return dataStore;
+    return this.dataStore;
   }
 
   protected DataObjectMetaData getMetaData() {
@@ -157,26 +166,26 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
   }
 
   public ResultPager<DataObject> getResultPager(final Query query) {
-    return dataStore.page(query);
+    return this.dataStore.page(query);
   }
 
   public String getTableName() {
-    return tableName;
+    return this.tableName;
   }
 
   @Override
   protected void insertObject(final DataObject object) {
     if (object.getIdValue() == null) {
-      object.setIdValue(dataStore.createPrimaryIdValue(tableName));
+      object.setIdValue(this.dataStore.createPrimaryIdValue(this.tableName));
     }
-    dataStore.insert(object);
+    this.dataStore.insert(object);
   }
 
   protected boolean isPropertyUnique(final DataObject object,
     final String attributeName) {
     final String value = object.getValue(attributeName);
     final DataObjectStore dataStore = getDataStore();
-    final DataObjectMetaData metaData = dataStore.getMetaData(tableName);
+    final DataObjectMetaData metaData = dataStore.getMetaData(this.tableName);
     if (metaData == null) {
       return true;
     } else {
@@ -201,11 +210,11 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
 
   @Override
   public DataObject loadObject(final Object id) {
-    return loadObject(tableName, id);
+    return loadObject(this.tableName, id);
   }
 
   public DataObject loadObject(final String typeName, final Object id) {
-    final DataObject object = dataStore.load(typeName, id);
+    final DataObject object = this.dataStore.load(typeName, id);
     return object;
   }
 
@@ -219,6 +228,6 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
 
   @Override
   protected void updateObject(final DataObject object) {
-    dataStore.update(object);
+    this.dataStore.update(object);
   }
 }

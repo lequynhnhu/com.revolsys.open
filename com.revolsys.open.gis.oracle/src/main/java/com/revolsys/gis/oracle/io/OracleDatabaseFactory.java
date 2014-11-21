@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import oracle.jdbc.OracleDriver;
 import oracle.jdbc.pool.OracleDataSource;
 
 import org.slf4j.LoggerFactory;
@@ -21,12 +22,12 @@ import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.jdbc.io.AbstractJdbcDatabaseFactory;
 import com.revolsys.jdbc.io.JdbcDataObjectStore;
-import com.revolsys.jdbc.io.JdbcDatabaseFactory;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.PasswordUtil;
 
-public class OracleDatabaseFactory implements JdbcDatabaseFactory {
+public class OracleDatabaseFactory extends AbstractJdbcDatabaseFactory {
   public static final String URL_REGEX = "jdbc:oracle:thin:(.+)";
 
   public static final List<String> URL_PATTERNS = Arrays.asList(URL_REGEX);
@@ -59,6 +60,7 @@ public class OracleDatabaseFactory implements JdbcDatabaseFactory {
     return urlMatcher.matches();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void closeDataSource(final DataSource dataSource) {
     if (dataSource instanceof OracleDataSource) {
@@ -70,6 +72,7 @@ public class OracleDatabaseFactory implements JdbcDatabaseFactory {
           "Unable to close data source", e);
       }
     }
+    super.closeDataSource(dataSource);
   }
 
   @Override
@@ -83,56 +86,72 @@ public class OracleDatabaseFactory implements JdbcDatabaseFactory {
     return new OracleDataObjectStore(this, connectionProperties);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public DataSource createDataSource(final Map<String, ? extends Object> config) {
-    try {
-      final Map<String, Object> newConfig = new HashMap<String, Object>(config);
-      final Properties cacheProperties = new Properties();
-      final String url = (String)newConfig.remove("url");
-      final String username = (String)newConfig.remove("username");
-      String password = (String)newConfig.remove("password");
-      password = PasswordUtil.decrypt(password);
-      addCacheProperty(newConfig, "minPoolSize", cacheProperties, "MinLimit",
-        0, DataTypes.INT);
-      addCacheProperty(newConfig, "maxPoolSize", cacheProperties, "MaxLimit",
-        10, DataTypes.INT);
-      addCacheProperty(newConfig, "inactivityTimeout", cacheProperties,
-        "InactivityTimeout", 300, DataTypes.INT);
-      addCacheProperty(newConfig, "waitTimeout", cacheProperties,
-        "ConnectionWaitTimeout", 1, DataTypes.INT);
-      addCacheProperty(newConfig, "validateConnection", cacheProperties,
-        "ValidateConnection", Boolean.TRUE, DataTypes.BOOLEAN);
+    if (isUseCommonsDbcp()) {
+      return super.createDataSource(config);
+    } else {
+      try {
+        final Map<String, Object> newConfig = new HashMap<String, Object>(
+            config);
+        final Properties cacheProperties = new Properties();
+        final String url = (String)newConfig.remove("url");
+        final String username = (String)newConfig.remove("username");
+        String password = (String)newConfig.remove("password");
+        password = PasswordUtil.decrypt(password);
+        addCacheProperty(newConfig, "minPoolSize", cacheProperties, "MinLimit",
+          0, DataTypes.INT);
+        addCacheProperty(newConfig, "maxPoolSize", cacheProperties, "MaxLimit",
+          10, DataTypes.INT);
+        addCacheProperty(newConfig, "inactivityTimeout", cacheProperties,
+          "InactivityTimeout", 300, DataTypes.INT);
+        addCacheProperty(newConfig, "waitTimeout", cacheProperties,
+          "ConnectionWaitTimeout", 1, DataTypes.INT);
+        addCacheProperty(newConfig, "validateConnection", cacheProperties,
+          "ValidateConnection", Boolean.TRUE, DataTypes.BOOLEAN);
 
-      final OracleDataSource dataSource = new OracleDataSource();
+        final OracleDataSource dataSource = new OracleDataSource();
 
-      dataSource.setConnectionCachingEnabled(true);
-      dataSource.setConnectionCacheProperties(cacheProperties);
+        dataSource.setConnectionCachingEnabled(true);
+        dataSource.setConnectionCacheProperties(cacheProperties);
 
-      for (final Entry<String, Object> property : newConfig.entrySet()) {
-        final String name = property.getKey();
-        final Object value = property.getValue();
-        try {
-          JavaBeanUtil.setProperty(dataSource, name, value);
-        } catch (final Throwable e) {
-          LoggerFactory.getLogger(OracleDatabaseFactory.class).debug(
-            "Unable to set Oracle data source property " + name, e);
+        for (final Entry<String, Object> property : newConfig.entrySet()) {
+          final String name = property.getKey();
+          final Object value = property.getValue();
+          try {
+            JavaBeanUtil.setProperty(dataSource, name, value);
+          } catch (final Throwable e) {
+            LoggerFactory.getLogger(OracleDatabaseFactory.class).debug(
+              "Unable to set Oracle data source property " + name, e);
+          }
         }
-      }
-      dataSource.setURL(url);
-      dataSource.setUser(username);
-      dataSource.setPassword(password);
+        dataSource.setURL(url);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
 
-      return dataSource;
-    } catch (final Throwable e) {
-      throw new IllegalArgumentException("Unable to create data source for "
-        + config, e);
+        return dataSource;
+      } catch (final Throwable e) {
+        throw new IllegalArgumentException("Unable to create data source for "
+            + config, e);
+      }
     }
+  }
+
+  @Override
+  public String getConnectionValidationQuery() {
+    return "SELECT 1 FROM DUAL";
   }
 
   @Override
   public Class<? extends DataObjectStore> getDataObjectStoreInterfaceClass(
     final Map<String, ? extends Object> connectionProperties) {
     return JdbcDataObjectStore.class;
+  }
+
+  @Override
+  public String getDriverClassName() {
+    return OracleDriver.class.getName();
   }
 
   @Override

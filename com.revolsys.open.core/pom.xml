@@ -7,7 +7,7 @@
   <parent>
     <artifactId>com.revolsys.open.parent</artifactId>
     <groupId>com.revolsys.open</groupId>
-    <version>GBA-SNAPSHOT</version>
+    <version>0.20141126.090541-GBA_1_1_1</version>
   </parent>
   <artifactId>com.revolsys.open.core</artifactId>
   <name>RS Core</name>

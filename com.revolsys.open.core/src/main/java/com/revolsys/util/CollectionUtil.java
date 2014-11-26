@@ -279,6 +279,16 @@ public final class CollectionUtil {
     }
   }
 
+  public static <K, V> int getCollectionSize(
+    final Map<K, ? extends Collection<V>> map, final K key) {
+    final Collection<V> values = map.get(key);
+    if (values == null) {
+      return 0;
+    } else {
+      return values.size();
+    }
+  }
+
   public static Double getDouble(final Map<String, ? extends Object> map,
     final String name) {
     final Object value = get(map, name);
@@ -479,6 +489,20 @@ public final class CollectionUtil {
       if (lastValue == null || value.compareTo(lastValue) > 1) {
         map.put(key, value);
       }
+    }
+  }
+
+  public static <K, V> boolean removeFromCollection(
+    final Map<K, ? extends Collection<V>> map, final K key, final V value) {
+    final Collection<V> values = map.get(key);
+    if (values == null) {
+      return false;
+    } else {
+      final boolean removed = values.remove(value);
+      if (values.isEmpty()) {
+        map.remove(key);
+      }
+      return removed;
     }
   }
 

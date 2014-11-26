@@ -123,12 +123,7 @@ public class DataObjectHtmlUiBuilder extends HtmlUiBuilder<DataObject> {
     final Map<String, Boolean> orderBy = getDataTableSortOrder(columnNames,
       request);
     query.setOrderBy(orderBy);
-    final ResultPager<DataObject> pager = getResultPager(query);
-    try {
-      return createDataTableMap(request, pager, pageName);
-    } finally {
-      pager.close();
-    }
+    return createDataTableMap(request, getDataStore(), query, pageName);
   }
 
   public Object createDataTableMap(final String pageName,

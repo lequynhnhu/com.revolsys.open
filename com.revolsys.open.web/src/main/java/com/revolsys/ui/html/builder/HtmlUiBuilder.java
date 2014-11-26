@@ -42,7 +42,10 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import com.revolsys.collection.ResultPager;
+import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.query.Query;
+import com.revolsys.io.Reader;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.spring.InvokeMethodAfterCommit;
@@ -115,7 +118,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public static boolean isDataTableCallback() {
     return HttpServletUtils.getParameter("_") != null
-      && HttpServletUtils.getParameter("callback") == null;
+        && HttpServletUtils.getParameter("callback") == null;
   }
 
   public static boolean isDataTableCallback(final HttpServletRequest request) {
@@ -386,15 +389,12 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     tableView.setNoRecordsMessgae(null);
 
     final Map<String, Object> tableParams = new LinkedHashMap<String, Object>();
-    tableParams.put("jQueryUI", true);
     tableParams.put("stateSave", true);
     tableParams.put("autoWidth", true);
-    tableParams.put("paging", false);
-    tableParams.put("scrollInfinite", true);
-    tableParams.put("scrollCollapse", true);
+    tableParams.put("dom", "frtiS");
     final String scrollY = (String)parameters.get("scrollY");
     if (scrollY == null) {
-      tableParams.put("scrollY", "200px");
+      tableParams.put("scrollY", "300px");
     } else {
       tableParams.put("scrollY", scrollY);
     }
@@ -404,7 +404,6 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     } else {
       tableParams.put("scrollX", scrollX);
     }
-    tableParams.put("displayLength", 50);
     tableParams.put("order", getListSortOrder(pageName));
 
     Boolean serverSide = (Boolean)parameters.get("serverSide");
@@ -414,14 +413,14 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         serverSide = true;
       }
 
-      tableParams.put("deferLoading", parameters.get("deferLoading"));
-      tableParams.put("processing", false);
       tableParams.put("serverSide", serverSide);
       tableParams.put("ajax", ajaxSource);
     } else if (serverSide == null) {
       serverSide = false;
     }
 
+    tableParams.put("scroller",
+      Collections.singletonMap("loadingIndicator", true));
     final List<Map<String, Object>> columnDefs = new ArrayList<Map<String, Object>>();
     int i = 0;
     for (final KeySerializer serializer : serializers) {
@@ -468,8 +467,8 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     final Script script = new Script();
     String jsonMap = JsonMapIoFactory.toString(tableParams);
     jsonMap = jsonMap.substring(0, jsonMap.length() - 1)
-      + ",\"createdRow\": function( row, data, dataIndex ) {refreshButtons(row);}"
-      + ",\"initComplete\": function() {$(this).DataTable().columns.adjust();}";
+        + ",\"createdRow\": function( row, data, dataIndex ) {refreshButtons(row);}"
+        + ",\"initComplete\": function() {$(this).DataTable().columns.adjust();}";
     jsonMap += "}";
     final StringBuffer scriptBody = new StringBuffer();
     scriptBody.append("$(document).ready(function() {\n");
@@ -600,58 +599,51 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
     }
 
     final Map<String, Object> response = new LinkedHashMap<String, Object>();
-    response.put("aaData", rows);
+    response.put("data", rows);
     return response;
 
   }
 
   public Map<String, Object> createDataTableMap(
-    final HttpServletRequest request,
-    final ResultPager<? extends Object> pager, final String pageName) {
-    try {
-      final int numRecords = pager.getNumResults();
-      int pageSize = HttpServletUtils.getIntegerParameter(request,
-        "iDisplayLength");
-      if (pageSize < 0) {
-        pageSize = numRecords;
-      } else if (pageSize == 0) {
-        pageSize = this.defaultPageSize;
+    final HttpServletRequest request, final DataObjectStore dataStore,
+    Query query, final String pageName) {
+    final int numRecords = dataStore.getRowCount(query);
+    int recordCount = 50;
+    final String lengthString = request.getParameter("length");
+    if (Property.hasValue(lengthString)) {
+      if (!"NAN".equalsIgnoreCase(lengthString)) {
+        try {
+          recordCount = Integer.valueOf(lengthString);
+        } catch (final Throwable e) {
+        }
       }
-      pager.setPageSize(pageSize);
+    }
 
-      final int recordNumber = HttpServletUtils.getIntegerParameter(request,
-        "iDisplayStart");
-      final int pageNumber = (int)Math.floor(recordNumber / (double)pageSize) + 1;
-      pager.setPageNumber(pageNumber);
+    final int offset = HttpServletUtils.getIntegerParameter(request, "start");
+    query = query.clone();
+    query.setOffset(offset);
+    query.setLimit(recordCount);
 
-      final List<KeySerializer> serializers = getSerializers(pageName, "list");
+    final List<KeySerializer> serializers = getSerializers(pageName, "list");
 
-      final List<List<String>> rows = new ArrayList<List<String>>();
-      for (final Object object : pager.getList()) {
+    final List<List<String>> rows = new ArrayList<>();
+    try (
+        Reader<DataObject> reader = dataStore.query(query)) {
+      for (final DataObject record : reader) {
         final List<String> row = new ArrayList<String>();
         for (final KeySerializer serializer : serializers) {
-          final String html = serializer.toString(object);
+          final String html = serializer.toString(record);
           row.add(html);
         }
         rows.add(row);
       }
-
-      final Map<String, Object> response = new LinkedHashMap<String, Object>();
-      response.put("sEcho", request.getParameter("sEcho"));
-      response.put("iTotalRecords", numRecords);
-      response.put("iTotalDisplayRecords", numRecords);
-      response.put("aaData", rows);
-      return response;
-    } finally {
-      pager.close();
     }
-
-  }
-
-  public Map<String, Object> createDataTableMap(
-    final ResultPager<? extends Object> pager, final String pageName) {
-    final HttpServletRequest request = HttpServletUtils.getRequest();
-    return createDataTableMap(request, pager, pageName);
+    final Map<String, Object> response = new LinkedHashMap<String, Object>();
+    response.put("draw", HttpServletUtils.getIntegerParameter(request, "draw"));
+    response.put("recordsTotal", numRecords);
+    response.put("recordsFiltered", numRecords);
+    response.put("data", rows);
+    return response;
   }
 
   public ElementContainer createDetailView(final Object object,
@@ -660,7 +652,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       serializers);
     model.setObject(object);
     final DetailView detailView = new DetailView(model, "objectView "
-      + this.typeName);
+        + this.typeName);
     return new ElementContainer(detailView);
   }
 
@@ -754,14 +746,14 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
       + "').submit()"));
 
     final MenuElement actionMenuElement = new MenuElement(actionMenu,
-      "actionMenu");
+        "actionMenu");
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;
   }
 
   public Element createObjectEditPage(final T object, final String prefix)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     if (object == null) {
       throw new PageNotFoundException();
     } else {
@@ -809,7 +801,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
         + "').submit()"));
 
       final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
+          "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
       view.setDecorator(new CollapsibleBox(title, true));
@@ -819,7 +811,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
 
   public ElementContainer createObjectViewPage(final Object object,
     final String prefix, final boolean collapsible)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     if (object == null) {
       throw new PageNotFoundException();
     } else {
@@ -1465,7 +1457,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
             uiBuilder = getBuilder(currentObject);
           } catch (final IllegalArgumentException e) {
             final String message = currentObject.getClass().getName()
-              + " does not have a property " + keyName;
+                + " does not have a property " + keyName;
             this.log.error(e.getMessage(), e);
             out.element(HtmlUtil.B, message);
             return;
@@ -1494,7 +1486,7 @@ public class HtmlUiBuilder<T> implements BeanFactoryAware, ServletContextAware {
               }
             } catch (final IllegalArgumentException e) {
               final String message = currentObject.getClass().getName()
-                + " does not have a property " + key;
+                  + " does not have a property " + key;
               this.log.error(e.getMessage(), e);
               out.element(HtmlUtil.B, message);
               return;

@@ -46,38 +46,38 @@ public class TableView extends Element {
   }
 
   public String getId() {
-    return id;
+    return this.id;
   }
 
   /**
    * @return Returns the noRecordsMessgae.
    */
   public String getNoRecordsMessgae() {
-    return noRecordsMessgae;
+    return this.noRecordsMessgae;
   }
 
   public String getWidth() {
-    return width;
+    return this.width;
   }
 
   @Override
   public void serializeElement(final XmlWriter out) {
-    final int rowCount = model.getBodyRowCount();
+    final int rowCount = this.model.getBodyRowCount();
     out.startTag(HtmlUtil.DIV);
-    out.attribute(HtmlUtil.ATTR_ID, id);
-    out.attribute(HtmlUtil.ATTR_CLASS, cssClass);
-    if (title != null && title.length() > 0) {
+    out.attribute(HtmlUtil.ATTR_ID, this.id);
+    out.attribute(HtmlUtil.ATTR_CLASS, this.cssClass);
+    if (this.title != null && this.title.length() > 0) {
       out.startTag(HtmlUtil.DIV);
       out.attribute(HtmlUtil.ATTR_CLASS, "title");
-      out.text(title);
+      out.text(this.title);
       out.endTag(HtmlUtil.DIV);
     }
-    if (rowCount > 0 || !StringUtils.hasText(noRecordsMessgae)) {
+    if (rowCount > 0 || !StringUtils.hasText(this.noRecordsMessgae)) {
       out.startTag(HtmlUtil.TABLE);
       out.attribute(HtmlUtil.ATTR_CELL_SPACING, "0");
       out.attribute(HtmlUtil.ATTR_CELL_PADDING, "0");
-      out.attribute(HtmlUtil.ATTR_CLASS, "data");
-      out.attribute(HtmlUtil.ATTR_WIDTH, width);
+      out.attribute(HtmlUtil.ATTR_CLASS, "data display cell-border");
+      out.attribute(HtmlUtil.ATTR_WIDTH, this.width);
 
       serializeHeadings(out);
       serializeFooter(out);
@@ -86,14 +86,14 @@ public class TableView extends Element {
       out.endTag(HtmlUtil.TABLE);
     } else {
       out.startTag(HtmlUtil.I);
-      out.text(noRecordsMessgae);
+      out.text(this.noRecordsMessgae);
       out.endTag(HtmlUtil.I);
     }
     out.endTag(HtmlUtil.DIV);
   }
 
   protected void serializeFooter(final XmlWriter out) {
-    final int rowCount = model.getFooterRowCount();
+    final int rowCount = this.model.getFooterRowCount();
     if (rowCount > 0) {
       out.startTag(HtmlUtil.TFOOT);
       for (int row = 0; row < rowCount; row++) {
@@ -105,7 +105,7 @@ public class TableView extends Element {
 
   protected void serializeFooterRow(final XmlWriter out, final int row,
     final int rowCount) {
-    final int colCount = model.getColumnCount();
+    final int colCount = this.model.getColumnCount();
     out.startTag(HtmlUtil.TR);
     String rowCss = "";
     if (row == 0) {
@@ -119,7 +119,7 @@ public class TableView extends Element {
     }
     for (int col = 0; col < colCount; col++) {
       out.startTag(HtmlUtil.TD);
-      String colCssClass = model.getFooterCssClass(row, col);
+      String colCssClass = this.model.getFooterCssClass(row, col);
       if (colCssClass == null) {
         colCssClass = "";
       }
@@ -129,19 +129,19 @@ public class TableView extends Element {
         colCssClass += " lastCol";
       }
       out.attribute(HtmlUtil.ATTR_CLASS, colCssClass);
-      model.serializeFooterCell(out, row, col);
+      this.model.serializeFooterCell(out, row, col);
       out.endTag(HtmlUtil.TD);
     }
     out.endTag(HtmlUtil.TR);
   }
 
   protected void serializeHeadings(final XmlWriter out) {
-    final int colCount = model.getColumnCount();
+    final int colCount = this.model.getColumnCount();
     out.startTag(HtmlUtil.THEAD);
     out.startTag(HtmlUtil.TR);
     for (int col = 0; col < colCount; col++) {
       out.startTag(HtmlUtil.TH);
-      String colCssClass = model.getHeaderCssClass(col);
+      String colCssClass = this.model.getHeaderCssClass(col);
       if (colCssClass == null) {
         colCssClass = "";
       }
@@ -154,7 +154,7 @@ public class TableView extends Element {
       if (colCssClass.length() > 0) {
         out.attribute(HtmlUtil.ATTR_CLASS, colCssClass);
       }
-      model.serializeHeaderCell(out, col);
+      this.model.serializeHeaderCell(out, col);
       out.endTag(HtmlUtil.TH);
     }
     out.endTag(HtmlUtil.TR);
@@ -163,7 +163,7 @@ public class TableView extends Element {
 
   protected void serializeRow(final XmlWriter out, final int row,
     final int rowCount) {
-    final int colCount = model.getColumnCount();
+    final int colCount = this.model.getColumnCount();
     out.startTag(HtmlUtil.TR);
     String rowCss = "";
     if (row == 0) {
@@ -180,7 +180,7 @@ public class TableView extends Element {
     }
     for (int col = 0; col < colCount; col++) {
       out.startTag(HtmlUtil.TD);
-      String colCssClass = model.getBodyCssClass(row, col);
+      String colCssClass = this.model.getBodyCssClass(row, col);
       if (colCssClass == null) {
         colCssClass = "";
       }
@@ -190,7 +190,7 @@ public class TableView extends Element {
         colCssClass += " lastCol";
       }
       out.attribute(HtmlUtil.ATTR_CLASS, colCssClass);
-      model.serializeBodyCell(out, row, col);
+      this.model.serializeBodyCell(out, row, col);
       out.endTag(HtmlUtil.TD);
     }
     out.endTag(HtmlUtil.TR);
@@ -198,7 +198,7 @@ public class TableView extends Element {
 
   protected void serializeRows(final XmlWriter out) {
     out.startTag(HtmlUtil.TBODY);
-    final int rowCount = model.getBodyRowCount();
+    final int rowCount = this.model.getBodyRowCount();
     for (int row = 0; row < rowCount; row++) {
       serializeRow(out, row, rowCount);
     }
